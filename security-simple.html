@@ -372,7 +372,6 @@
 
         .toast.show {
             display: flex;
-            animation: slideIn 0.3s ease;
         }
 
         .toast.success {
@@ -458,6 +457,25 @@
                 width: 100%;
                 justify-content: flex-end;
             }
+        }
+
+        /* Time counter styles */
+        .time-counter {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        .time-normal {
+            color: #64748b;
+        }
+
+        .time-warning {
+            color: #f59e0b;
+        }
+
+        .time-urgent {
+            color: #ef4444;
         }
     </style>
 </head>
@@ -593,40 +611,85 @@
         // Load pickup queue from Supabase
         async function loadPickupQueue() {
             try {
-                // Get pickup calls with student information
+                console.log('Loading pickup queue...');
+                
+                // First, let's see what pickup calls exist with any status
+                const { data: allCalls, error: allError } = await supabase
+                    .from('pickup_calls')
+                    .select('id, status, student_name, created_at')
+                    .order('created_at', { ascending: false });
+
+                if (allError) {
+                    console.error('Error fetching all pickup calls:', allError);
+                } else {
+                    console.log('All pickup calls in database:', allCalls);
+                    console.log('Available statuses:', [...new Set(allCalls.map(call => call.status))]);
+                    const statusCounts = {};
+                    allCalls.forEach(call => {
+                        statusCounts[call.status] = (statusCounts[call.status] || 0) + 1;
+                    });
+                    console.log('Status counts:', statusCounts);
+                }
+                
+                // Get pickup calls with student information - include both "called" and "on the way"
                 const { data, error } = await supabase
                     .from('pickup_calls')
                     .select(`
-                        *,
+                        id,
+                        status,
+                        student_id,
+                        student_name,
+                        called_time,
+                        created_at,
                         students (
                             id,
                             name,
-                            class
+                            class,
+                            photo_url
                         )
                     `)
-                    .eq('status', 'called')
+                    .in('status', ['called', 'on the way'])
                     .order('called_time', { ascending: true });
                 
-                if (error) throw error;
+                if (error) {
+                    console.error('Supabase query error:', error);
+                    throw error;
+                }
+                
+                console.log('Raw pickup calls data:', data);
+                console.log('Found', data.length, 'pickup calls with status "called" or "on the way"');
                 
                 // Convert database records to local queue format
-                pickupQueue = data.map(call => ({
-                    id: call.id,
-                    dbId: call.id,
-                    student: {
-                        id: call.student_id,
-                        name: call.student_name,
-                        class: call.students?.class || 'Unknown Class'
-                    },
-                    calledAt: new Date(call.called_time).toLocaleTimeString(),
-                    databaseRecord: call
-                }));
+                pickupQueue = data.map(call => {
+                    console.log('Processing call:', call);
+                    return {
+                        id: call.id,
+                        dbId: call.id,
+                        status: call.status,
+                        student: {
+                            id: call.student_id,
+                            name: call.student_name || 'Unknown Name',
+                            class: call.students.class || 'Unknown Class',
+                            photoUrl: call.students.photo_url || ''
+                        },
+                        calledAt: new Date(call.called_time || call.created_at).toLocaleTimeString(),
+                        databaseRecord: call
+                    };
+                });
                 
                 console.log('✅ Pickup queue loaded successfully:', pickupQueue.length, 'items');
+                console.log('Queue with statuses:', pickupQueue.map(q => ({ name: q.student.name, status: q.status })));
+                
                 updateQueueDisplay();
                 
             } catch (error) {
                 console.error('Error loading pickup queue:', error);
+                console.error('Error details:', {
+                    message: error.message,
+                    code: error.code,
+                    details: error.details,
+                    hint: error.hint
+                });
                 showToast('Failed to load pickup queue', 'error');
             }
         }
@@ -693,6 +756,24 @@
                 initializeEventListeners();
                 updateCallButton();
                 console.log('Security dashboard loaded successfully');
+                
+                // Periodic refresh of pickup queue
+                setInterval(loadPickupQueue, 60000); // Refresh every 60 seconds
+                
+                // Real-time subscription to pickup_calls table
+                const subscription = supabase
+                    .channel('pickup_calls_changes')
+                    .on('postgres_changes', {
+                        event: '*',
+                        schema: 'public',
+                        table: 'pickup_calls'
+                    }, (payload) => {
+                        console.log('Real-time update received:', payload);
+                        // Refresh pickup queue when any change occurs
+                        loadPickupQueue();
+                    })
+                    .subscribe();
+                
             } catch (error) {
                 console.error('Initialization error:', error);
                 showToast('System initialization failed. Please refresh the page.', 'error');
@@ -804,9 +885,10 @@
                     
                     item.innerHTML = `
                         <div style="display: flex; align-items: center; gap: 15px; flex: 1;">
-                            <div style="width: 45px; height: 45px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 1.1rem;">
-                                ${student.name.charAt(0)}
-                            </div>
+                            ${student.photo_url ? 
+                                `<img src="${student.photo_url}" alt="${student.name}" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover;">` :
+                                `<div style="width: 45px; height: 45px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 1.1rem;">${student.name.charAt(0)}</div>`
+                            }
                             <div style="flex: 1;">
                                 <div class="student-name">${student.name}</div>
                                 <div class="student-class">${student.class}</div>
@@ -912,10 +994,12 @@
                 const queueItem = {
                     id: data[0].id,
                     dbId: data[0].id,
+                    status: 'called', // Include status for new calls
                     student: {
                         id: selectedStudent.id,
                         name: selectedStudent.name,
-                        class: selectedStudent.class
+                        class: selectedStudent.class,
+                        photoUrl: selectedStudent.photo_url
                     },
                     calledAt: new Date().toLocaleTimeString(),
                     databaseRecord: data[0]
@@ -954,12 +1038,23 @@
                 pickupQueue.forEach(item => {
                     const queueElement = document.createElement('div');
                     queueElement.className = 'queue-item';
+                    
+                    // Calculate time elapsed since called
+                    const calledTime = new Date(item.databaseRecord.called_time || item.databaseRecord.created_at);
+                    const timeElapsed = getTimeElapsed(calledTime);
+                    const timeClass = getTimeClass(calledTime);
+                    
                     queueElement.innerHTML = `
                         <div class="queue-student-info">
-                            <div class="queue-avatar">${item.student.name.charAt(0)}</div>
+                            ${item.student.photoUrl ? 
+                                `<img src="${item.student.photoUrl}" alt="${item.student.name}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">` :
+                                `<div class="queue-avatar">${item.student.name.charAt(0)}</div>`
+                            }
                             <div class="queue-details">
                                 <h4>${item.student.name}</h4>
                                 <p>${item.student.class} • Called at ${item.calledAt}</p>
+                                <p>Status: <span style="${item.status === 'on the way' ? 'color: #dc2626; font-weight: bold;' : ''}">${item.status}</span></p>
+                                <p><span class="time-counter ${timeClass}" data-timestamp="${calledTime.getTime()}">${timeElapsed}</span> elapsed</p>
                             </div>
                         </div>
                         <div class="queue-actions">
@@ -974,9 +1069,61 @@
                     
                     queueContainer.appendChild(queueElement);
                 });
+                
+                // Start the time counter updates
+                startTimeCounters();
             } catch (error) {
                 console.error('Queue display error:', error);
             }
+        }
+
+        // Time counter functions (similar to monitor page)
+        function getTimeElapsed(timestamp) {
+            const now = new Date();
+            const diffMs = now - timestamp;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffSecs = Math.floor((diffMs % 60000) / 1000);
+            
+            if (diffMins > 0) {
+                return `${diffMins}m ${diffSecs}s`;
+            } else {
+                return `${diffSecs}s`;
+            }
+        }
+
+        function getTimeClass(timestamp) {
+            const now = new Date();
+            const diffMs = now - timestamp;
+            const diffMins = Math.floor(diffMs / 60000);
+            
+            if (diffMins >= 5) return 'time-urgent';
+            if (diffMins >= 3) return 'time-warning';
+            return 'time-normal';
+        }
+
+        function startTimeCounters() {
+            const counters = document.querySelectorAll('.time-counter');
+            
+            // Update immediately
+            updateTimeCounters();
+            
+            // Update every second
+            if (window.timeCounterInterval) {
+                clearInterval(window.timeCounterInterval);
+            }
+            window.timeCounterInterval = setInterval(updateTimeCounters, 1000);
+        }
+
+        function updateTimeCounters() {
+            const counters = document.querySelectorAll('.time-counter');
+            counters.forEach(counter => {
+                const timestamp = new Date(parseInt(counter.dataset.timestamp));
+                const elapsed = getTimeElapsed(timestamp);
+                const timeClass = getTimeClass(timestamp);
+                
+                counter.textContent = elapsed;
+                counter.className = `time-counter ${timeClass}`;
+            });
         }
 
         async function completePickup(queueId) {
@@ -1010,6 +1157,7 @@
                 // Remove from local queue
                 pickupQueue.splice(index, 1);
                 updateQueueDisplay();
+                
                 showToast(`${student.name} pickup completed`, 'success');
                 
             } catch (error) {
@@ -1049,6 +1197,7 @@
                 // Remove from local queue
                 pickupQueue.splice(index, 1);
                 updateQueueDisplay();
+                
                 showToast(`${student.name} pickup cancelled`, 'error');
                 
             } catch (error) {
@@ -1082,4 +1231,4 @@
         }
     </script>
 </body>
-</html> 
+</html>

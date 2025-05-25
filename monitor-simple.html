@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kings College School - Monitor Dashboard</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Supabase Client Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
@@ -55,6 +56,15 @@
             margin-top: 4px;
         }
 
+        .station-title {
+            color: #ffffff;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 20px 0 30px 0;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
         .logout-btn {
             background: #ef4444;
             color: white;
@@ -79,289 +89,252 @@
         /* Main content */
         .main-content {
             padding: 40px;
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
-            text-align: center;
         }
 
-        .station-title {
-            color: white;
-            font-size: 3rem;
-            font-weight: 700;
-            margin-bottom: 40px;
+        /* Dashboard grid layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            align-items: start;
         }
 
-        /* Status card */
-        .status-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 60px 40px;
-            margin: 0 auto;
-            max-width: 800px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
-
-        .status-icon {
-            color: #64748b;
-            font-size: 4rem;
-            margin-bottom: 30px;
-            opacity: 0.6;
-        }
-
-        .status-message {
-            color: #64748b;
-            font-size: 1.5rem;
-            font-weight: 500;
-            line-height: 1.6;
-            margin-bottom: 20px;
-        }
-
-        .status-submessage {
-            color: #9ca3af;
-            font-size: 1.1rem;
-            font-weight: 400;
-        }
-
-        /* Active tasks section (hidden by default) */
-        .tasks-section {
+        /* Search section (simplified for monitor) */
+        .monitor-section {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(20px);
             border-radius: 20px;
             padding: 40px;
-            margin-top: 30px;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-            display: none;
+            height: fit-content;
         }
 
-        .tasks-title {
-            color: #3b82f6;
+        .monitor-section h2 {
+            color: #1e40af;
             font-size: 1.8rem;
             font-weight: 700;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
+        }
+
+        .pickup-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .pickup-table th, .pickup-table td {
+            border: 1px solid #e2e8f0;
+            padding: 12px;
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        .pickup-table th {
+            background-color: #f8fafc;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .pickup-table tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+
+        .pickup-table tr:hover {
+            background-color: #f0f4f8;
+        }
+
+        .student-info {
             display: flex;
             align-items: center;
-            justify-content: center;
             gap: 12px;
         }
 
-        .task-item {
-            background: white;
-            border: 2px solid #e5e7eb;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.3s ease;
+        .student-info.on-the-way {
+            filter: grayscale(100%) opacity(0.7);
         }
 
-        .task-item:hover {
-            border-color: #3b82f6;
-            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.1);
-        }
-
-        .task-student-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .task-avatar {
+        .student-avatar {
             width: 50px;
             height: 50px;
             border-radius: 50%;
-            background: #3b82f6;
+            background: linear-gradient(135deg, #3b82f6, #1e40af);
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 1.2rem;
             font-weight: 600;
-        }
-
-        .task-details h4 {
-            color: #1e40af;
             font-size: 1.2rem;
-            margin-bottom: 4px;
         }
 
-        .task-details p {
+        .student-details h4 {
+            margin: 0;
+            color: #1e40af;
+            font-size: 1.1rem;
+        }
+
+        .student-details p {
+            margin: 2px 0 0 0;
             color: #64748b;
             font-size: 0.9rem;
         }
 
-        .task-actions {
-            display: flex;
-            gap: 10px;
+        .time-counter {
+            font-weight: 600;
+            color: #ef4444;
         }
 
-        .found-btn {
-            background: #10b981;
+        .time-counter.warning {
+            color: #f59e0b;
+        }
+
+        .time-counter.danger {
+            color: #ef4444;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .action-buttons button {
+            background: #22c55e;
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 8px 15px;
             border-radius: 8px;
             cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.2s ease;
+            margin-right: 5px;
+        }
+
+        .action-buttons button:hover {
+            background: #16a34a;
+        }
+
+        .action-buttons .on-way-btn {
+            background: #f97316;
+        }
+
+        .action-buttons .on-way-btn:hover {
+            background: #ea580c;
+        }
+
+        .action-buttons .on-way-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .action-buttons .on-way-btn:disabled:hover {
+            background: #9ca3af;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
             font-weight: 600;
-            transition: all 0.3s ease;
+            text-transform: uppercase;
         }
 
-        .found-btn:hover {
-            background: #059669;
-            transform: translateY(-1px);
+        .status-called {
+            background: #fef3c7;
+            color: #92400e;
         }
 
-        .delay-btn {
-            background: #f59e0b;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
+        .status-on-way {
+            background: #d1fae5;
+            color: #065f46;
         }
 
-        .delay-btn:hover {
-            background: #d97706;
-            transform: translateY(-1px);
-        }
-
-        /* Toast notification */
+        /* Toast Notification */
         .toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 16px;
             position: fixed;
-            top: 20px;
-            right: 20px;
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-            transform: translateX(400px);
-            transition: transform 0.3s ease;
-            z-index: 1001;
-            max-width: 350px;
+            z-index: 1;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transition: opacity 0.3s, visibility 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
         .toast.show {
-            transform: translateX(0);
+            visibility: visible;
+            opacity: 1;
         }
 
         .toast.success {
-            border-left: 4px solid #10b981;
+            background-color: #28a745;
         }
 
         .toast.error {
-            border-left: 4px solid #ef4444;
+            background-color: #dc3545;
         }
 
         .toast.info {
-            border-left: 4px solid #3b82f6;
-        }
-
-        .toast-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 15px;
+            background-color: #17a2b8;
         }
 
         .toast-close {
             background: none;
             border: none;
-            color: #6b7280;
+            color: white;
+            font-size: 1.2rem;
             cursor: pointer;
-            padding: 5px;
-            border-radius: 5px;
-        }
-
-        .toast-close:hover {
-            background: #f3f4f6;
-        }
-
-        /* Responsive design */
-        @media (max-width: 768px) {
-            .header {
-                padding: 15px 20px;
-                flex-direction: column;
-                gap: 15px;
-                text-align: center;
-            }
-
-            .main-content {
-                padding: 20px;
-            }
-
-            .station-title {
-                font-size: 2.2rem;
-            }
-
-            .status-card {
-                padding: 40px 25px;
-            }
-
-            .status-icon {
-                font-size: 3rem;
-            }
-
-            .status-message {
-                font-size: 1.2rem;
-            }
-
-            .task-item {
-                flex-direction: column;
-                gap: 15px;
-                text-align: center;
-            }
+            margin-left: 10px;
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
     <div class="header">
         <div class="header-left">
-            <div class="crown-logo">
-                <i class="fas fa-crown"></i>
-            </div>
+            <i class="fas fa-crown crown-logo"></i>
             <div>
-                <h1 class="header-title">Kings College School</h1>
-                <p class="header-subtitle">Cascais - Student Pickup Management System</p>
+                <div class="header-title">Kings College School</div>
+                <div class="header-subtitle">Student Pickup System</div>
             </div>
         </div>
         <button class="logout-btn" onclick="logout()">
-            <i class="fas fa-sign-out-alt"></i>
-            Logout
+            <i class="fas fa-sign-out-alt"></i> Logout
         </button>
     </div>
 
-    <!-- Main Content -->
     <div class="main-content">
         <h1 class="station-title">Monitor Station</h1>
 
-        <!-- Status Card -->
-        <div class="status-card">
-            <div class="status-icon">
-                <i class="fas fa-calendar-check"></i>
-            </div>
-            <div class="status-message">
-                No children have been called yet for today.
-            </div>
-            <div class="status-submessage">
-                Monitor tasks will appear here when students are called for pickup.
-            </div>
-        </div>
-
-        <!-- Active Tasks Section (shown when there are tasks) -->
-        <div class="tasks-section" id="tasksSection">
-            <h2 class="tasks-title">
-                <i class="fas fa-tasks"></i>
-                Active Monitoring Tasks
-            </h2>
-            <div id="activeTasks">
-                <!-- Tasks will be populated by JavaScript -->
-            </div>
+        <div class="monitor-section">
+            <h2>Students Called for Pickup</h2>
+            <table class="pickup-table">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Class</th>
+                        <th>Called At</th>
+                        <th>Time Elapsed</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="pickupTableBody">
+                    <!-- Students will be populated here -->
+                </tbody>
+            </table>
+            <p id="noStudentsMessage" style="text-align: center; margin-top: 20px; color: #666; display: none;">No students have been called for pickup yet.</p>
         </div>
     </div>
 
@@ -375,78 +348,235 @@
         </div>
     </div>
 
-    <!-- Load Supabase configuration -->
-    <script src="supabase-config.js"></script>
-    
     <script>
-        // Sample monitoring tasks (empty by default)
-        let monitoringTasks = [];
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://hzzaauogpmlnymxguppp.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6emFhdW9ncG1sbnlteGd1cHBwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwNzU2NTAsImV4cCI6MjA2MzY1MTY1MH0.16_3QrnieC_GdBfiuaRpaw4vsXTRCgw0hXXDNqbzFQQ';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let monitoringTasks = []; // This will hold the fetched pickup calls
 
         // DOM elements
-        const tasksSection = document.getElementById('tasksSection');
-        const activeTasksContainer = document.getElementById('activeTasks');
+        const pickupTableBody = document.getElementById('pickupTableBody');
+        const noStudentsMessage = document.getElementById('noStudentsMessage');
 
-        function updateTasksDisplay() {
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('Monitor dashboard loading...');
+            try {
+                await fetchPickupCalls();
+                setupRealtimeUpdates();
+                initializeEventListeners();
+                console.log('Monitor dashboard loaded successfully');
+            } catch (error) {
+                console.error('Monitor dashboard initialization failed:', error);
+                showToast('System initialization failed. Please refresh the page.', 'error');
+            }
+        });
+
+        async function fetchPickupCalls() {
+            console.log('Fetching pickup calls from Supabase...');
+            try {
+                // First, let's see what pickup calls exist with any status
+                const { data: allCalls, error: allError } = await supabase
+                    .from('pickup_calls')
+                    .select(`
+                        id,
+                        status,
+                        created_at,
+                        student:student_id (*)
+                    `)
+                    .order('created_at', { ascending: false });
+
+                if (allError) {
+                    console.error('Error fetching all pickup calls:', allError);
+                }
+
+                // Now fetch both "called" and "on the way" statuses
+                const { data: pickupCalls, error } = await supabase
+                    .from('pickup_calls')
+                    .select(`
+                        id,
+                        status,
+                        created_at,
+                        student:student_id (*)
+                    `)
+                    .in('status', ['called', 'on the way'])
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    console.error('Error in pickup_calls query:', error);
+                    throw error;
+                }
+
+                monitoringTasks = pickupCalls.map(call => ({
+                    id: call.id,
+                    status: call.status,
+                    student: {
+                        name: `${call.student.first_name || call.student.firstName || call.student.name || 'Unknown'} ${call.student.last_name || call.student.lastName || ''}`,
+                        class: call.student.class || call.student.className || call.student.grade || 'Unknown',
+                        photo: call.student.photo || call.student.photo_url || null
+                    },
+                    calledAt: new Date(call.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    calledTimestamp: new Date(call.created_at)
+                }));
+
+                updatePickupTable();
+            } catch (error) {
+                console.error('Error in fetchPickupCalls:', error);
+                showToast('Failed to load pickup calls. Please check console for details.', 'error');
+            }
+        }
+
+        function setupRealtimeUpdates() {
+            supabase.channel('pickup_calls_changes')
+                .on('postgres_changes',
+                    { event: '*', schema: 'public', table: 'pickup_calls' },
+                    (payload) => {
+                        console.log('Realtime change received!', payload);
+                        
+                        // If a student was completed, remove them immediately
+                        if (payload.new && payload.new.status === 'completed') {
+                            console.log('Student completed, removing from list:', payload.new.id);
+                            monitoringTasks = monitoringTasks.filter(task => task.id !== payload.new.id);
+                            updatePickupTable();
+                            return;
+                        }
+                        
+                        // If a student was cancelled, remove them immediately  
+                        if (payload.new && payload.new.status === 'cancelled') {
+                            console.log('Student cancelled, removing from list:', payload.new.id);
+                            monitoringTasks = monitoringTasks.filter(task => task.id !== payload.new.id);
+                            updatePickupTable();
+                            return;
+                        }
+                        
+                        // For other changes, re-fetch data
+                        fetchPickupCalls();
+                    }
+                )
+                .subscribe();
+        }
+
+        function updatePickupTable() {
+            pickupTableBody.innerHTML = ''; // Clear existing rows
+
             if (monitoringTasks.length === 0) {
-                tasksSection.style.display = 'none';
-                return;
+                noStudentsMessage.style.display = 'block';
+            } else {
+                noStudentsMessage.style.display = 'none';
+                monitoringTasks.forEach((task, index) => {
+                    const row = pickupTableBody.insertRow();
+                    
+                    // Calculate time elapsed
+                    const timeElapsed = getTimeElapsed(task.calledTimestamp);
+                    const timeClass = getTimeClass(task.calledTimestamp);
+                    
+                    // Get student initials for avatar
+                    const initials = task.student.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                    
+                    // Check if student is on the way
+                    const isOnTheWay = task.status === 'on the way';
+                    
+                    row.innerHTML = `
+                        <td>
+                            <div class="student-info ${isOnTheWay ? 'on-the-way' : ''}">
+                                <div class="student-avatar">
+                                    ${task.student.photo ? `<img src="${task.student.photo}" alt="${task.student.name}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">` : initials}
+                                </div>
+                                <div class="student-details">
+                                    <h4>${task.student.name}</h4>
+                                    <p>${task.student.class}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            ${task.student.class}
+                            <br>
+                            <span class="status-badge status-${task.status.replace(' ', '-')}">${task.status}</span>
+                        </td>
+                        <td>${task.calledAt}</td>
+                        <td><span class="time-counter ${timeClass}" data-timestamp="${task.calledTimestamp.getTime()}">${timeElapsed}</span></td>
+                        <td class="action-buttons">
+                            <button class="on-way-btn" onclick="markOnTheWay('${task.id}')" ${isOnTheWay ? 'disabled' : ''}>
+                                <i class="fas fa-route"></i> ${isOnTheWay ? 'On the Way' : 'Mark on the Way'}
+                            </button>
+                        </td>
+                    `;
+                });
+                
+                // Start the time counter updates
+                startTimeCounters();
             }
-
-            tasksSection.style.display = 'block';
-            activeTasksContainer.innerHTML = '';
-
-            monitoringTasks.forEach(task => {
-                const taskElement = document.createElement('div');
-                taskElement.className = 'task-item';
-                taskElement.innerHTML = `
-                    <div class="task-student-info">
-                        <div class="task-avatar">${task.student.name.charAt(0)}</div>
-                        <div class="task-details">
-                            <h4>${task.student.name}</h4>
-                            <p>${task.student.class} • Called at ${task.calledAt}</p>
-                        </div>
-                    </div>
-                    <div class="task-actions">
-                        <button class="found-btn" onclick="markStudentFound(${task.id})">
-                            <i class="fas fa-check"></i> Found
-                        </button>
-                        <button class="delay-btn" onclick="reportDelay(${task.id})">
-                            <i class="fas fa-clock"></i> Need Help
-                        </button>
-                    </div>
-                `;
-
-                activeTasksContainer.appendChild(taskElement);
-            });
         }
 
-        function markStudentFound(taskId) {
-            const taskIndex = monitoringTasks.findIndex(task => task.id === taskId);
-            if (taskIndex !== -1) {
-                const student = monitoringTasks[taskIndex].student;
-                monitoringTasks.splice(taskIndex, 1);
-                updateTasksDisplay();
-                showToast(`${student.name} marked as found and ready for pickup`, 'success');
-            }
-        }
-
-        function reportDelay(taskId) {
-            const task = monitoringTasks.find(task => task.id === taskId);
-            if (task) {
-                showToast(`Help requested for locating ${task.student.name}`, 'info');
-            }
-        }
-
-        function addNewTask(student) {
-            const newTask = {
-                id: Date.now(),
-                student: student,
-                calledAt: new Date().toLocaleTimeString()
-            };
+        function getTimeElapsed(calledTime) {
+            const now = new Date();
+            const diff = now - calledTime;
+            const minutes = Math.floor(diff / 60000);
+            const seconds = Math.floor((diff % 60000) / 1000);
             
-            monitoringTasks.push(newTask);
-            updateTasksDisplay();
-            showToast(`New task: Locate ${student.name}`, 'info');
+            if (minutes > 0) {
+                return `${minutes}m ${seconds}s`;
+            } else {
+                return `${seconds}s`;
+            }
+        }
+
+        function getTimeClass(calledTime) {
+            const now = new Date();
+            const diff = now - calledTime;
+            const minutes = Math.floor(diff / 60000);
+            
+            if (minutes >= 10) return 'danger';
+            if (minutes >= 5) return 'warning';
+            return '';
+        }
+
+        function startTimeCounters() {
+            // Update time counters every second
+            setInterval(() => {
+                const counters = document.querySelectorAll('.time-counter');
+                counters.forEach(counter => {
+                    const timestamp = parseInt(counter.dataset.timestamp);
+                    const calledTime = new Date(timestamp);
+                    const timeElapsed = getTimeElapsed(calledTime);
+                    const timeClass = getTimeClass(calledTime);
+                    
+                    counter.textContent = timeElapsed;
+                    counter.className = `time-counter ${timeClass}`;
+                });
+            }, 1000);
+        }
+
+        async function markOnTheWay(taskId) {
+            console.log('markOnTheWay clicked with taskId:', taskId);
+            try {
+                console.log('Updating status to "on the way" for task:', taskId);
+                const { error } = await supabase
+                    .from('pickup_calls')
+                    .update({ status: 'on the way' })
+                    .eq('id', taskId);
+
+                if (error) {
+                    console.error('Supabase error:', error);
+                    throw error;
+                }
+
+                console.log('Successfully updated status to "on the way"');
+                
+                // Show success message
+                const task = monitoringTasks.find(t => t.id === taskId);
+                if (task) {
+                    showToast(`${task.student.name} marked as on the way`, 'success');
+                }
+                
+                // Force refresh the entire page data to ensure visual changes apply
+                await fetchPickupCalls();
+                
+            } catch (error) {
+                console.error('Error in markOnTheWay:', error);
+                showToast('Failed to mark student as on the way.', 'error');
+            }
         }
 
         function showToast(message, type = 'info') {
@@ -467,57 +597,17 @@
             }
         }
 
-        // Simulate receiving new tasks (for demo purposes)
-        // In a real system, this would come from the security station
-        function simulateNewTask() {
-            const sampleStudents = [
-                { name: "Emma Johnson", class: "Class 2C" },
-                { name: "Oliver Smith", class: "Class 3B" },
-                { name: "Sophia Williams", class: "Class 1A" }
-            ];
-            
-            const randomStudent = sampleStudents[Math.floor(Math.random() * sampleStudents.length)];
-            addNewTask(randomStudent);
-        }
-
-        // Initialize - MONITOR ONLY
-        document.addEventListener('DOMContentLoaded', async function() {
-            try {
-                console.log('Monitor dashboard loading...');
-                
-                // TEMPORARILY DISABLED: Authentication check
-                // const isAuthenticated = await checkAuth('monitor');
-                // if (!isAuthenticated) {
-                //     return; // Will redirect to login
-                // }
-                
-                console.log('⚠️ Authentication check temporarily disabled for testing');
-                console.log('Monitor dashboard initializing...');
-                updateTasksDisplay();
-                initializeEventListeners();
-                console.log('Monitor dashboard loaded successfully');
-            } catch (error) {
-                console.error('Monitor dashboard initialization failed:', error);
-                showToast('System initialization failed. Please refresh the page.', 'error');
-            }
-        });
-
         function initializeEventListeners() {
-            try {
-                const toastClose = document.getElementById('toastClose');
-                
-                if (toastClose) {
-                    toastClose.addEventListener('click', function() {
-                        const toast = document.getElementById('toast');
-                        if (toast) {
-                            toast.classList.remove('show');
-                        }
-                    });
-                }
-            } catch (error) {
-                console.error('Event listener initialization failed:', error);
+            const toastClose = document.getElementById('toastClose');
+            if (toastClose) {
+                toastClose.addEventListener('click', function() {
+                    const toast = document.getElementById('toast');
+                    if (toast) {
+                        toast.classList.remove('show');
+                    }
+                });
             }
         }
     </script>
 </body>
-</html> 
+</html>
