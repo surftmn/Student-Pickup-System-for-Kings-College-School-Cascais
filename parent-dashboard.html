@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parent Dashboard - Kings College School</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="dashboard-styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="dashboard-body">
+    <!-- Header -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <div class="school-logo">
+                <i class="fas fa-crown"></i>
+            </div>
+            <div class="header-info">
+                <h1>Kings College School</h1>
+                <p>Parent Portal</p>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="user-info">
+                <i class="fas fa-user-circle"></i>
+                <span id="userName">Loading...</span>
+            </div>
+            <button class="logout-btn" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+        <div class="dashboard-container">
+            <!-- Welcome Message -->
+            <div class="welcome-card">
+                <div class="welcome-content">
+                    <h2><i class="fas fa-hand-wave"></i> Welcome Back!</h2>
+                    <p>Select your child's photo below when you arrive at school for pickup.</p>
+                </div>
+                <div class="time-display">
+                    <i class="fas fa-clock"></i>
+                    <span id="currentTime">Loading...</span>
+                </div>
+            </div>
+
+            <!-- Children Grid -->
+            <div class="children-section">
+                <h3><i class="fas fa-users"></i> Your Children</h3>
+                <p class="section-subtitle">Tap a photo to request pickup</p>
+                
+                <div class="children-grid" id="childrenGrid">
+                    <!-- Children will be populated dynamically -->
+                </div>
+            </div>
+
+            <!-- Pickup Status -->
+            <div class="status-section">
+                <h3><i class="fas fa-clipboard-check"></i> Pickup Status</h3>
+                <div class="status-card" id="statusCard">
+                    <div class="status-content">
+                        <i class="fas fa-car"></i>
+                        <p>No active pickup requests</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Child Selection Modal -->
+    <div class="modal" id="childModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalChildName">Confirm Pickup</h3>
+                <button class="modal-close" id="modalClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="child-confirmation">
+                    <div class="child-photo-large" id="modalChildPhoto">
+                        <img src="" alt="" id="modalChildImage">
+                    </div>
+                    <div class="child-details">
+                        <h4 id="modalChildDetails">Loading...</h4>
+                        <p class="confirmation-text">
+                            Are you sure you want to request pickup for this child?
+                            They will be called and brought to the pickup area.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="cancelPickup">Cancel</button>
+                <button class="btn-primary" id="confirmPickup">
+                    <i class="fas fa-check"></i>
+                    Request Pickup
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <div class="toast-content">
+            <span class="toast-message" id="toastMessage"></span>
+            <button class="toast-close" id="toastClose">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Processing request...</p>
+        </div>
+    </div>
+
+    <script src="supabase-config.js"></script>
+    <script src="auth-system.js"></script>
+    <script src="parent-dashboard.js"></script>
+</body>
+</html> 

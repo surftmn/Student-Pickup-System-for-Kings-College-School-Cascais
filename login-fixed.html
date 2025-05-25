@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kings College School - Login (Fixed)</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 60px 50px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .crown-logo {
+            color: #ffd700;
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .school-title {
+            color: #1e40af;
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .school-subtitle {
+            color: #64748b;
+            font-size: 1.1rem;
+            margin-bottom: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .form-label {
+            display: block;
+            color: #374151;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+            background: white;
+        }
+
+        .login-btn {
+            width: 100%;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 18px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .login-btn:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 25px rgba(59, 130, 246, 0.4);
+        }
+
+        .login-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .success-message {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .demo-section {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .demo-title {
+            color: #64748b;
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .demo-accounts {
+            display: grid;
+            gap: 10px;
+        }
+
+        .demo-account {
+            background: #f8fafc;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+
+        .demo-account:hover {
+            background: #f1f5f9;
+            border-color: #3b82f6;
+        }
+
+        .demo-role {
+            font-weight: 600;
+            color: #3b82f6;
+            font-size: 0.9rem;
+        }
+
+        .demo-email {
+            color: #64748b;
+            font-size: 0.8rem;
+        }
+
+        .spinner {
+            border: 2px solid #ffffff40;
+            border-top: 2px solid #ffffff;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="crown-logo">
+            <i class="fas fa-crown"></i>
+        </div>
+        
+        <h1 class="school-title">Kings College School</h1>
+        <p class="school-subtitle">Cascais - Student Pickup Management System</p>
+        
+        <div class="error-message" id="errorMessage"></div>
+        <div class="success-message" id="successMessage"></div>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label class="form-label" for="email">Email Address</label>
+                <input type="email" 
+                       class="form-input" 
+                       id="email" 
+                       name="email" 
+                       required 
+                       placeholder="Enter your email">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="password">Password</label>
+                <input type="password" 
+                       class="form-input" 
+                       id="password" 
+                       name="password" 
+                       required 
+                       placeholder="Enter your password">
+            </div>
+            
+            <button type="submit" class="login-btn" id="loginBtn">
+                <i class="fas fa-sign-in-alt"></i>
+                Sign In
+            </button>
+        </form>
+
+        <!-- Demo accounts section -->
+        <div class="demo-section">
+            <h3 class="demo-title">Test Accounts</h3>
+            <div class="demo-accounts">
+                <div class="demo-account" onclick="fillCredentials('test@test.com', 'test123')">
+                    <div class="demo-role">🔧 Test Account</div>
+                    <div class="demo-email">test@test.com / test123</div>
+                </div>
+                <div class="demo-account" onclick="fillCredentials('security@gmail.com', 'security123')">
+                    <div class="demo-role">🛡️ Security Guard</div>
+                    <div class="demo-email">security@gmail.com / security123</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Embedded Supabase Configuration
+        const SUPABASE_URL = 'https://hzzaauogpmlnymxguppp.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6emFhdW9ncG1sbnlteGd1cHBwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwNzU2NTAsImV4cCI6MjA2MzY1MTY1MH0.16_3QrnieC_GdBfiuaRpaw4vsXTRCgw0hXXDNqbzFQQ';
+
+        let supabase = null;
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                console.log('Initializing Supabase...');
+                
+                // Wait for Supabase library to load
+                if (typeof window.supabase !== 'undefined') {
+                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    console.log('✅ Supabase initialized successfully');
+                } else {
+                    console.error('❌ Supabase library not loaded');
+                    showError('Failed to load authentication system');
+                    return;
+                }
+
+                initializeEventListeners();
+            } catch (error) {
+                console.error('Initialization error:', error);
+                showError('System initialization failed');
+            }
+        });
+
+        function initializeEventListeners() {
+            const loginForm = document.getElementById('loginForm');
+            if (loginForm) {
+                loginForm.addEventListener('submit', handleLogin);
+            }
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+
+            if (!email || !password) {
+                showError('Please enter both email and password');
+                return;
+            }
+
+            if (!supabase) {
+                showError('Authentication system not ready');
+                return;
+            }
+
+            setLoading(true);
+            hideMessages();
+
+            try {
+                console.log(`Attempting login for: ${email}`);
+                
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+
+                if (error) {
+                    console.error('Login error:', error);
+                    showError(`Login failed: ${error.message}`);
+                    return;
+                }
+
+                if (data.user) {
+                    const role = data.user.user_metadata?.role || 'No role';
+                    console.log(`✅ Login successful for ${email}, role: ${role}`);
+                    
+                    showSuccess(`Login successful! Redirecting to ${role} dashboard...`);
+                    
+                    setTimeout(() => {
+                        redirectToDashboard(data.user);
+                    }, 1500);
+                } else {
+                    showError('Login failed: No user data returned');
+                }
+
+            } catch (error) {
+                console.error('Login exception:', error);
+                showError(`Network error: ${error.message}`);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        function redirectToDashboard(user) {
+            const role = user.user_metadata?.role;
+            
+            console.log(`Redirecting user with role: ${role}`);
+            
+            switch (role) {
+                case 'admin':
+                    window.location.href = 'admin-simple.html';
+                    break;
+                case 'security':
+                    window.location.href = 'security-simple.html';
+                    break;
+                case 'monitor':
+                    window.location.href = 'monitor-simple.html';
+                    break;
+                case 'parent':
+                    window.location.href = 'parent-simple.html';
+                    break;
+                default:
+                    showError(`Unknown role: ${role}. Please contact administrator.`);
+                    break;
+            }
+        }
+
+        function fillCredentials(email, password) {
+            document.getElementById('email').value = email;
+            document.getElementById('password').value = password;
+            hideMessages();
+        }
+
+        function setLoading(isLoading) {
+            const loginBtn = document.getElementById('loginBtn');
+            if (isLoading) {
+                loginBtn.disabled = true;
+                loginBtn.innerHTML = '<div class="spinner"></div> Signing In...';
+            } else {
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
+            }
+        }
+
+        function showError(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+            
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            successMessage.style.display = 'none';
+        }
+
+        function showSuccess(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+            
+            successMessage.textContent = message;
+            successMessage.style.display = 'block';
+            errorMessage.style.display = 'none';
+        }
+
+        function hideMessages() {
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

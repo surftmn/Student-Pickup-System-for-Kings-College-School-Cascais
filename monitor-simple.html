@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kings College School - Monitor Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 20px 40px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .crown-logo {
+            color: #ffd700;
+            font-size: 2.5rem;
+        }
+
+        .header-title {
+            color: #1e40af;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .header-subtitle {
+            color: #64748b;
+            font-size: 1rem;
+            margin-top: 4px;
+        }
+
+        .logout-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logout-btn:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
+        }
+
+        /* Main content */
+        .main-content {
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .station-title {
+            color: white;
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 40px;
+        }
+
+        /* Status card */
+        .status-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 60px 40px;
+            margin: 0 auto;
+            max-width: 800px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .status-icon {
+            color: #64748b;
+            font-size: 4rem;
+            margin-bottom: 30px;
+            opacity: 0.6;
+        }
+
+        .status-message {
+            color: #64748b;
+            font-size: 1.5rem;
+            font-weight: 500;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .status-submessage {
+            color: #9ca3af;
+            font-size: 1.1rem;
+            font-weight: 400;
+        }
+
+        /* Active tasks section (hidden by default) */
+        .tasks-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            margin-top: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .tasks-title {
+            color: #3b82f6;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .task-item {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .task-item:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.1);
+        }
+
+        .task-student-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .task-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #3b82f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .task-details h4 {
+            color: #1e40af;
+            font-size: 1.2rem;
+            margin-bottom: 4px;
+        }
+
+        .task-details p {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .found-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .found-btn:hover {
+            background: #059669;
+            transform: translateY(-1px);
+        }
+
+        .delay-btn {
+            background: #f59e0b;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .delay-btn:hover {
+            background: #d97706;
+            transform: translateY(-1px);
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1001;
+            max-width: 350px;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            border-left: 4px solid #10b981;
+        }
+
+        .toast.error {
+            border-left: 4px solid #ef4444;
+        }
+
+        .toast.info {
+            border-left: 4px solid #3b82f6;
+        }
+
+        .toast-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            color: #6b7280;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+        .toast-close:hover {
+            background: #f3f4f6;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .header {
+                padding: 15px 20px;
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+
+            .station-title {
+                font-size: 2.2rem;
+            }
+
+            .status-card {
+                padding: 40px 25px;
+            }
+
+            .status-icon {
+                font-size: 3rem;
+            }
+
+            .status-message {
+                font-size: 1.2rem;
+            }
+
+            .task-item {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-left">
+            <div class="crown-logo">
+                <i class="fas fa-crown"></i>
+            </div>
+            <div>
+                <h1 class="header-title">Kings College School</h1>
+                <p class="header-subtitle">Cascais - Student Pickup Management System</p>
+            </div>
+        </div>
+        <button class="logout-btn" onclick="logout()">
+            <i class="fas fa-sign-out-alt"></i>
+            Logout
+        </button>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <h1 class="station-title">Monitor Station</h1>
+
+        <!-- Status Card -->
+        <div class="status-card">
+            <div class="status-icon">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="status-message">
+                No children have been called yet for today.
+            </div>
+            <div class="status-submessage">
+                Monitor tasks will appear here when students are called for pickup.
+            </div>
+        </div>
+
+        <!-- Active Tasks Section (shown when there are tasks) -->
+        <div class="tasks-section" id="tasksSection">
+            <h2 class="tasks-title">
+                <i class="fas fa-tasks"></i>
+                Active Monitoring Tasks
+            </h2>
+            <div id="activeTasks">
+                <!-- Tasks will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <div class="toast-content">
+            <span class="toast-message" id="toastMessage"></span>
+            <button class="toast-close" id="toastClose">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Load Supabase configuration -->
+    <script src="supabase-config.js"></script>
+    
+    <script>
+        // Sample monitoring tasks (empty by default)
+        let monitoringTasks = [];
+
+        // DOM elements
+        const tasksSection = document.getElementById('tasksSection');
+        const activeTasksContainer = document.getElementById('activeTasks');
+
+        function updateTasksDisplay() {
+            if (monitoringTasks.length === 0) {
+                tasksSection.style.display = 'none';
+                return;
+            }
+
+            tasksSection.style.display = 'block';
+            activeTasksContainer.innerHTML = '';
+
+            monitoringTasks.forEach(task => {
+                const taskElement = document.createElement('div');
+                taskElement.className = 'task-item';
+                taskElement.innerHTML = `
+                    <div class="task-student-info">
+                        <div class="task-avatar">${task.student.name.charAt(0)}</div>
+                        <div class="task-details">
+                            <h4>${task.student.name}</h4>
+                            <p>${task.student.class} • Called at ${task.calledAt}</p>
+                        </div>
+                    </div>
+                    <div class="task-actions">
+                        <button class="found-btn" onclick="markStudentFound(${task.id})">
+                            <i class="fas fa-check"></i> Found
+                        </button>
+                        <button class="delay-btn" onclick="reportDelay(${task.id})">
+                            <i class="fas fa-clock"></i> Need Help
+                        </button>
+                    </div>
+                `;
+
+                activeTasksContainer.appendChild(taskElement);
+            });
+        }
+
+        function markStudentFound(taskId) {
+            const taskIndex = monitoringTasks.findIndex(task => task.id === taskId);
+            if (taskIndex !== -1) {
+                const student = monitoringTasks[taskIndex].student;
+                monitoringTasks.splice(taskIndex, 1);
+                updateTasksDisplay();
+                showToast(`${student.name} marked as found and ready for pickup`, 'success');
+            }
+        }
+
+        function reportDelay(taskId) {
+            const task = monitoringTasks.find(task => task.id === taskId);
+            if (task) {
+                showToast(`Help requested for locating ${task.student.name}`, 'info');
+            }
+        }
+
+        function addNewTask(student) {
+            const newTask = {
+                id: Date.now(),
+                student: student,
+                calledAt: new Date().toLocaleTimeString()
+            };
+            
+            monitoringTasks.push(newTask);
+            updateTasksDisplay();
+            showToast(`New task: Locate ${student.name}`, 'info');
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toastMessage.textContent = message;
+            toast.className = `toast ${type} show`;
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 4000);
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Simulate receiving new tasks (for demo purposes)
+        // In a real system, this would come from the security station
+        function simulateNewTask() {
+            const sampleStudents = [
+                { name: "Emma Johnson", class: "Class 2C" },
+                { name: "Oliver Smith", class: "Class 3B" },
+                { name: "Sophia Williams", class: "Class 1A" }
+            ];
+            
+            const randomStudent = sampleStudents[Math.floor(Math.random() * sampleStudents.length)];
+            addNewTask(randomStudent);
+        }
+
+        // Initialize - MONITOR ONLY
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                console.log('Monitor dashboard loading...');
+                
+                // TEMPORARILY DISABLED: Authentication check
+                // const isAuthenticated = await checkAuth('monitor');
+                // if (!isAuthenticated) {
+                //     return; // Will redirect to login
+                // }
+                
+                console.log('⚠️ Authentication check temporarily disabled for testing');
+                console.log('Monitor dashboard initializing...');
+                updateTasksDisplay();
+                initializeEventListeners();
+                console.log('Monitor dashboard loaded successfully');
+            } catch (error) {
+                console.error('Monitor dashboard initialization failed:', error);
+                showToast('System initialization failed. Please refresh the page.', 'error');
+            }
+        });
+
+        function initializeEventListeners() {
+            try {
+                const toastClose = document.getElementById('toastClose');
+                
+                if (toastClose) {
+                    toastClose.addEventListener('click', function() {
+                        const toast = document.getElementById('toast');
+                        if (toast) {
+                            toast.classList.remove('show');
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Event listener initialization failed:', error);
+            }
+        }
+    </script>
+</body>
+</html> 

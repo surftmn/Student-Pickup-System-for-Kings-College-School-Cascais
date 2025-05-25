@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor Dashboard - Kings College School</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="dashboard-styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="dashboard-body">
+    <!-- Header -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <div class="school-logo">
+                <i class="fas fa-crown"></i>
+            </div>
+            <div class="header-info">
+                <h1>Kings College School</h1>
+                <p>Monitor Portal</p>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="user-info">
+                <i class="fas fa-user-circle"></i>
+                <span id="userName">Loading...</span>
+            </div>
+            <button class="logout-btn" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+        <div class="dashboard-container">
+            <!-- Welcome Message -->
+            <div class="welcome-card">
+                <div class="welcome-content">
+                    <h2><i class="fas fa-search-location"></i> Monitor Station</h2>
+                    <p>Locate and escort called students to the pickup area.</p>
+                </div>
+                <div class="time-display">
+                    <i class="fas fa-clock"></i>
+                    <span id="currentTime">Loading...</span>
+                </div>
+            </div>
+
+            <!-- Called Children Section -->
+            <div class="children-section">
+                <h3><i class="fas fa-bell"></i> Called for Pickup</h3>
+                <p class="section-subtitle">Children that need to be located and brought to pickup area</p>
+                
+                <div class="called-children-list" id="calledChildrenList">
+                    <!-- Called children will be populated dynamically -->
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="actions-section">
+                <h3><i class="fas fa-tools"></i> Quick Actions</h3>
+                <div class="action-buttons">
+                    <button class="btn-primary" onclick="monitorDashboard.refreshList()">
+                        <i class="fas fa-sync"></i>
+                        Refresh List
+                    </button>
+                    <button class="btn-secondary" onclick="monitorDashboard.showHelp()">
+                        <i class="fas fa-question-circle"></i>
+                        Help
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Child Details Modal -->
+    <div class="modal" id="childModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalChildName">Child Details</h3>
+                <button class="modal-close" id="modalClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="child-details-view">
+                    <div class="child-photo-large" id="modalChildPhoto">
+                        <img src="" alt="" id="modalChildImage">
+                    </div>
+                    <div class="child-info-detailed">
+                        <h4 id="modalChildDetails">Loading...</h4>
+                        <div class="detail-item">
+                            <strong>Parent:</strong>
+                            <span id="modalParentName">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Called At:</strong>
+                            <span id="modalCallTime">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Status:</strong>
+                            <span id="modalStatus">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="cancelModal">Close</button>
+                <button class="btn-success" id="markFound">
+                    <i class="fas fa-check"></i>
+                    Mark as Found
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div class="modal" id="helpModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Monitor Instructions</h3>
+                <button class="modal-close" id="helpModalClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="help-content">
+                    <h4><i class="fas fa-info-circle"></i> Your Role</h4>
+                    <p>As a monitor, you help locate students throughout the school when parents request pickup.</p>
+                    
+                    <h4><i class="fas fa-list-check"></i> Steps to Follow</h4>
+                    <ol>
+                        <li>Check this screen regularly for new pickup requests</li>
+                        <li>Locate the student using their photo and class information</li>
+                        <li>Escort the student to the pickup area</li>
+                        <li>Mark the student as "Found" in the system</li>
+                        <li>Inform security that the student is ready for pickup</li>
+                    </ol>
+                    
+                    <h4><i class="fas fa-map-marker-alt"></i> Student Locations</h4>
+                    <ul>
+                        <li><strong>Classes 1A-1C:</strong> Ground Floor, East Wing</li>
+                        <li><strong>Classes 2A-2C:</strong> Ground Floor, West Wing</li>
+                        <li><strong>Classes 3A-3C:</strong> First Floor, East Wing</li>
+                        <li><strong>Classes 4A-4C:</strong> First Floor, West Wing</li>
+                        <li><strong>Classes 5A-5C:</strong> Second Floor</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary" id="closeHelp">Got it!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <div class="toast-content">
+            <span class="toast-message" id="toastMessage"></span>
+            <button class="toast-close" id="toastClose">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Loading...</p>
+        </div>
+    </div>
+
+    <script src="supabase-config.js"></script>
+    <script src="auth-system.js"></script>
+    <script src="monitor-dashboard.js"></script>
+</body>
+</html> 

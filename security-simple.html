@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kings College School - Security Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 20px 40px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .crown-logo {
+            color: #ffd700;
+            font-size: 2.5rem;
+        }
+
+        .header-title {
+            color: #1e40af;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .header-subtitle {
+            color: #64748b;
+            font-size: 1rem;
+            margin-top: 4px;
+        }
+
+        .station-title {
+            color: #3b82f6;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 20px 0 10px 0;
+        }
+
+        .logout-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logout-btn:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
+        }
+
+        /* Main content */
+        .main-content {
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Search section */
+        .search-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-container {
+            position: relative;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 20px 60px 20px 20px;
+            border: 3px solid #e5e7eb;
+            border-radius: 15px;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+
+        .search-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 3px solid #e5e7eb;
+            border-top: none;
+            border-radius: 0 0 15px 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+        }
+
+        .search-dropdown.show {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .dropdown-item:hover {
+            background: #f8fafc;
+        }
+
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .student-name {
+            font-weight: 600;
+            color: #1e40af;
+            font-size: 1.1rem;
+        }
+
+        .student-class {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-top: 2px;
+        }
+
+        .call-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 20px auto 0;
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .call-btn:hover {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 25px rgba(16, 185, 129, 0.4);
+        }
+
+        .call-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Pickup Queue */
+        .queue-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+
+        .queue-title {
+            color: #3b82f6;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .empty-queue {
+            text-align: center;
+            color: #64748b;
+            font-size: 1.2rem;
+            padding: 60px 20px;
+            background: #fef3cd;
+            border-radius: 15px;
+            border: 2px solid #fbbf24;
+        }
+
+        .queue-item {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .queue-item:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.1);
+        }
+
+        .queue-student-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .queue-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #3b82f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .queue-details h4 {
+            color: #1e40af;
+            font-size: 1.2rem;
+            margin-bottom: 4px;
+        }
+
+        .queue-details p {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .queue-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .complete-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .complete-btn:hover {
+            background: #059669;
+            transform: translateY(-1px);
+        }
+
+        .cancel-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .cancel-btn:hover {
+            background: #dc2626;
+            transform: translateY(-1px);
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1001;
+            max-width: 350px;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            border-left: 4px solid #10b981;
+        }
+
+        .toast.error {
+            border-left: 4px solid #ef4444;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                padding: 15px 20px;
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+
+            .search-section,
+            .queue-section {
+                padding: 25px;
+            }
+
+            .station-title {
+                font-size: 2rem;
+            }
+
+            .queue-item {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-left">
+            <div class="crown-logo">
+                <i class="fas fa-crown"></i>
+            </div>
+            <div>
+                <h1 class="header-title">Kings College School</h1>
+                <p class="header-subtitle">Cascais - Student Pickup Management System</p>
+            </div>
+        </div>
+        <button class="logout-btn" onclick="logout()">
+            <i class="fas fa-sign-out-alt"></i>
+            Logout
+        </button>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <h1 class="station-title">Security Guard Station</h1>
+
+        <!-- Search Section -->
+        <div class="search-section">
+            <div class="search-container">
+                <input type="text" 
+                       class="search-input" 
+                       id="studentSearch" 
+                       placeholder="Search for student to call..."
+                       autocomplete="off">
+                <div class="search-dropdown" id="searchDropdown">
+                    <!-- Dropdown items will be populated by JavaScript -->
+                </div>
+                <button class="call-btn" id="callStudentBtn" disabled>
+                    <i class="fas fa-phone"></i>
+                    Call Student
+                </button>
+            </div>
+        </div>
+
+        <!-- Pickup Queue -->
+        <div class="queue-section">
+            <h2 class="queue-title">
+                <i class="fas fa-list"></i>
+                Pickup Queue
+            </h2>
+            <div id="pickupQueue">
+                <div class="empty-queue">
+                    No pickups in queue
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <div class="toast-content">
+            <span class="toast-message" id="toastMessage"></span>
+            <button class="toast-close" id="toastClose">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Load Supabase configuration -->
+    <script src="supabase-config.js"></script>
+    
+    <script>
+        // Sample students data with availability status
+        const students = [
+            { id: 1, name: "Emma Johnson", class: "Class 2C", status: "available" },
+            { id: 2, name: "Oliver Smith", class: "Class 3B", status: "available" },
+            { id: 3, name: "Sophia Williams", class: "Class 1A", status: "available" },
+            { id: 4, name: "James Brown", class: "Class 4A", status: "available" },
+            { id: 5, name: "Isabella Davis", class: "Class 2A", status: "available" },
+            { id: 6, name: "William Wilson", class: "Class 3C", status: "available" }
+        ];
+
+        let selectedStudent = null;
+        let pickupQueue = [];
+
+        // Check authentication when page loads - SECURITY ONLY
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                console.log('Security dashboard loading...');
+                
+                // TEMPORARILY DISABLED: Authentication check
+                // const isAuthenticated = await checkAuth('security');
+                // if (!isAuthenticated) {
+                //     return; // Will redirect to login
+                // }
+                
+                console.log('⚠️ Authentication check temporarily disabled for testing');
+                console.log('Security dashboard initializing...');
+                initializeEventListeners();
+                updateCallButton();
+                console.log('Security dashboard loaded successfully');
+            } catch (error) {
+                console.error('Initialization error:', error);
+                showToast('System initialization failed. Please refresh the page.', 'error');
+            }
+        });
+
+        function initializeEventListeners() {
+            const searchInput = document.getElementById('studentSearch');
+            const callBtn = document.getElementById('callStudentBtn');
+            const toastClose = document.getElementById('toastClose');
+
+            if (searchInput) {
+                searchInput.addEventListener('input', handleSearchInput);
+            } else {
+                console.error('Search input not found');
+            }
+
+            if (callBtn) {
+                callBtn.addEventListener('click', handleCallStudent);
+            } else {
+                console.error('Call button not found');
+            }
+
+            if (toastClose) {
+                toastClose.addEventListener('click', function() {
+                    const toast = document.getElementById('toast');
+                    if (toast) {
+                        toast.classList.remove('show');
+                    }
+                });
+            }
+
+            // Hide dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.search-container')) {
+                    hideDropdown();
+                }
+            });
+        }
+
+        function handleSearchInput() {
+            try {
+                const searchInput = document.getElementById('studentSearch');
+                if (!searchInput) return;
+
+                const query = searchInput.value.toLowerCase().trim();
+                
+                if (query.length > 0) {
+                    const filteredStudents = students.filter(student => 
+                        student.name.toLowerCase().includes(query) || 
+                        student.class.toLowerCase().includes(query)
+                    );
+                    
+                    if (filteredStudents.length > 0) {
+                        showDropdown(filteredStudents);
+                    } else {
+                        hideDropdown();
+                    }
+                } else {
+                    hideDropdown();
+                    selectedStudent = null;
+                    updateCallButton();
+                }
+            } catch (error) {
+                console.error('Search input error:', error);
+            }
+        }
+
+        function showDropdown(studentList) {
+            try {
+                const searchDropdown = document.getElementById('searchDropdown');
+                if (!searchDropdown) return;
+
+                searchDropdown.innerHTML = '';
+                
+                studentList.forEach(student => {
+                    const item = document.createElement('div');
+                    item.className = 'dropdown-item';
+                    
+                    // Check if student is in queue
+                    const inQueue = pickupQueue.find(q => q.student.id === student.id);
+                    const availability = inQueue ? 'called' : student.status;
+                    const availabilityText = inQueue ? 'CALLED' : 'AVAILABLE';
+                    
+                    item.innerHTML = `
+                        <div style="display: flex; align-items: center; gap: 15px; flex: 1;">
+                            <div style="width: 40px; height: 40px; border-radius: 50%; background: #3b82f6; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 1.1rem;">
+                                ${student.name.charAt(0)}
+                            </div>
+                            <div style="flex: 1;">
+                                <div class="student-name">${student.name}</div>
+                                <div class="student-class">${student.class}</div>
+                            </div>
+                        </div>
+                        <div style="background: ${availability === 'called' ? '#dbeafe' : '#d1fae5'}; color: ${availability === 'called' ? '#1e40af' : '#065f46'}; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">
+                            ${availabilityText}
+                        </div>
+                    `;
+                    
+                    item.addEventListener('click', function() {
+                        selectStudent(student);
+                    });
+                    
+                    searchDropdown.appendChild(item);
+                });
+                
+                searchDropdown.classList.add('show');
+            } catch (error) {
+                console.error('Dropdown error:', error);
+            }
+        }
+
+        function hideDropdown() {
+            try {
+                const searchDropdown = document.getElementById('searchDropdown');
+                if (searchDropdown) {
+                    searchDropdown.classList.remove('show');
+                }
+            } catch (error) {
+                console.error('Hide dropdown error:', error);
+            }
+        }
+
+        function selectStudent(student) {
+            try {
+                selectedStudent = student;
+                const searchInput = document.getElementById('studentSearch');
+                if (searchInput) {
+                    searchInput.value = `${student.name} - ${student.class}`;
+                }
+                hideDropdown();
+                updateCallButton();
+            } catch (error) {
+                console.error('Select student error:', error);
+            }
+        }
+
+        function updateCallButton() {
+            try {
+                const callBtn = document.getElementById('callStudentBtn');
+                if (!callBtn) return;
+
+                if (selectedStudent) {
+                    callBtn.disabled = false;
+                    callBtn.innerHTML = `<i class="fas fa-phone"></i> Call ${selectedStudent.name}`;
+                } else {
+                    callBtn.disabled = true;
+                    callBtn.innerHTML = '<i class="fas fa-phone"></i> Call Student';
+                }
+            } catch (error) {
+                console.error('Update button error:', error);
+            }
+        }
+
+        function handleCallStudent() {
+            try {
+                if (!selectedStudent) return;
+
+                // Check if student is already in queue
+                const alreadyInQueue = pickupQueue.find(item => item.student.id === selectedStudent.id);
+                
+                if (alreadyInQueue) {
+                    showToast('Student is already in the pickup queue!', 'error');
+                    return;
+                }
+
+                // Add to pickup queue
+                const queueItem = {
+                    id: Date.now(),
+                    student: selectedStudent,
+                    calledAt: new Date().toLocaleTimeString()
+                };
+                
+                pickupQueue.push(queueItem);
+                updateQueueDisplay();
+                
+                // Reset search
+                const searchInput = document.getElementById('studentSearch');
+                if (searchInput) {
+                    searchInput.value = '';
+                }
+                selectedStudent = null;
+                updateCallButton();
+                
+                showToast(`${queueItem.student.name} has been called for pickup`, 'success');
+            } catch (error) {
+                console.error('Call student error:', error);
+                showToast('Error calling student. Please try again.', 'error');
+            }
+        }
+
+        function updateQueueDisplay() {
+            try {
+                const queueContainer = document.getElementById('pickupQueue');
+                if (!queueContainer) return;
+
+                if (pickupQueue.length === 0) {
+                    queueContainer.innerHTML = '<div class="empty-queue">No pickups in queue</div>';
+                    return;
+                }
+
+                queueContainer.innerHTML = '';
+                
+                pickupQueue.forEach(item => {
+                    const queueElement = document.createElement('div');
+                    queueElement.className = 'queue-item';
+                    queueElement.innerHTML = `
+                        <div class="queue-student-info">
+                            <div class="queue-avatar">${item.student.name.charAt(0)}</div>
+                            <div class="queue-details">
+                                <h4>${item.student.name}</h4>
+                                <p>${item.student.class} • Called at ${item.calledAt}</p>
+                            </div>
+                        </div>
+                        <div class="queue-actions">
+                            <button class="complete-btn" onclick="completePickup(${item.id})">
+                                <i class="fas fa-check"></i> Complete
+                            </button>
+                            <button class="cancel-btn" onclick="cancelPickup(${item.id})">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
+                        </div>
+                    `;
+                    
+                    queueContainer.appendChild(queueElement);
+                });
+            } catch (error) {
+                console.error('Queue display error:', error);
+            }
+        }
+
+        function completePickup(queueId) {
+            try {
+                const index = pickupQueue.findIndex(item => item.id === queueId);
+                if (index !== -1) {
+                    const student = pickupQueue[index].student;
+                    pickupQueue.splice(index, 1);
+                    updateQueueDisplay();
+                    showToast(`${student.name} pickup completed`, 'success');
+                }
+            } catch (error) {
+                console.error('Complete pickup error:', error);
+            }
+        }
+
+        function cancelPickup(queueId) {
+            try {
+                const index = pickupQueue.findIndex(item => item.id === queueId);
+                if (index !== -1) {
+                    const student = pickupQueue[index].student;
+                    pickupQueue.splice(index, 1);
+                    updateQueueDisplay();
+                    showToast(`${student.name} pickup cancelled`, 'error');
+                }
+            } catch (error) {
+                console.error('Cancel pickup error:', error);
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            try {
+                const toast = document.getElementById('toast');
+                const toastMessage = document.getElementById('toastMessage');
+                
+                if (toast && toastMessage) {
+                    toastMessage.textContent = message;
+                    toast.className = `toast ${type} show`;
+                    
+                    setTimeout(() => {
+                        toast.classList.remove('show');
+                    }, 3000);
+                }
+            } catch (error) {
+                console.error('Toast error:', error);
+            }
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = 'login.html';
+            }
+        }
+    </script>
+</body>
+</html> 

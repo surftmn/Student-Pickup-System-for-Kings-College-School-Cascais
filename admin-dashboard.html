@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; object-src 'none';">
+        <title>Kings College School - Student Pickup System</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="dashboard-styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="dashboard-body">
+    <!-- Header -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <div class="school-logo">
+                <i class="fas fa-crown"></i>
+            </div>
+            <div class="header-info">
+                <h1>Kings College School</h1>
+                <p>Super Admin Portal</p>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="user-info">
+                <i class="fas fa-user-circle"></i>
+                <span id="userName">Loading...</span>
+            </div>
+            <button class="logout-btn" onclick="logout() || (window.adminDashboard && window.adminDashboard.logout())">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+            </button>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="admin-nav">
+        <button class="nav-tab active" data-tab="students" onclick="adminDashboard.switchTab('students')">
+            <i class="fas fa-users"></i>
+            Students Management
+        </button>
+        <button class="nav-tab" data-tab="logs" onclick="adminDashboard.switchTab('logs')">
+            <i class="fas fa-clipboard-list"></i>
+            Pickup Logs
+        </button>
+        <button class="nav-tab" data-tab="system" onclick="adminDashboard.switchTab('system')">
+            <i class="fas fa-cogs"></i>
+            System Overview
+        </button>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+        <div class="dashboard-container">
+            
+            <!-- Students Management Tab -->
+            <div class="tab-content active" id="studentsTab">
+                <div class="section-header">
+                    <h2><i class="fas fa-users"></i> Students Management</h2>
+                    <button class="btn-primary" onclick="adminDashboard.showAddStudentModal()">
+                        <i class="fas fa-plus"></i>
+                        Add New Student
+                    </button>
+                </div>
+
+                <!-- Students Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="totalStudents">0</div>
+                            <div class="stat-label">Total Students</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="pickedUpToday">0</div>
+                            <div class="stat-label">Picked Up Today</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange">
+                            <i class="fas fa-phone"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="calledToday">0</div>
+                            <div class="stat-label">Called Today</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon red">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="pendingPickup">0</div>
+                            <div class="stat-label">Pending Pickup</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Students Search and Filter -->
+                <div class="filter-section">
+                    <div class="search-bar">
+                        <input type="text" id="studentSearchInput" class="search-input" 
+                               placeholder="Search students by name or class...">
+                        <button class="search-btn" onclick="adminDashboard.searchStudents()">
+                            <i class="fas fa-search"></i>
+                            Search
+                        </button>
+                    </div>
+                    <div class="filter-controls">
+                        <select id="classFilter" onchange="adminDashboard.filterStudents()">
+                            <option value="">All Classes</option>
+                        </select>
+                        <select id="statusFilter" onchange="adminDashboard.filterStudents()">
+                            <option value="">All Status</option>
+                            <option value="not_called">Not Called</option>
+                            <option value="called">Called</option>
+                            <option value="found">Ready</option>
+                            <option value="picked_up">Picked Up</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Students Table -->
+                <div class="table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Photo</th>
+                                <th>Name</th>
+                                <th>Class</th>
+                                <th>Status</th>
+                                <th>Last Updated</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentsTableBody">
+                            <!-- Students will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Pickup Logs Tab -->
+            <div class="tab-content" id="logsTab">
+                <div class="section-header">
+                    <h2><i class="fas fa-clipboard-list"></i> Pickup Logs</h2>
+                    <div class="date-filter">
+                        <input type="date" id="logDateFilter" onchange="adminDashboard.filterLogs()">
+                        <button class="btn-secondary" onclick="adminDashboard.exportLogs()">
+                            <i class="fas fa-download"></i>
+                            Export
+                        </button>
+                    </div>
+                </div>
+
+                <div class="logs-container">
+                    <div class="table-container">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Date/Time</th>
+                                    <th>Student</th>
+                                    <th>Class</th>
+                                    <th>Parent</th>
+                                    <th>Status</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody id="logsTableBody">
+                                <!-- Logs will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Overview Tab -->
+            <div class="tab-content" id="systemTab">
+                <div class="section-header">
+                    <h2><i class="fas fa-cogs"></i> System Overview</h2>
+                </div>
+
+                <div class="system-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon purple">
+                            <i class="fas fa-database"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="totalPickups">0</div>
+                            <div class="stat-label">Total Pickups</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon teal">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="totalMessages">0</div>
+                            <div class="stat-label">Chat Messages</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Activity Feed -->
+                <div class="activity-section">
+                    <h3><i class="fas fa-pulse"></i> Live Activity Feed</h3>
+                    <div class="activity-feed" id="activityFeed">
+                        <!-- Activity items will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Chat Monitor -->
+                <div class="chat-monitor-section">
+                    <h3><i class="fas fa-comments"></i> Live Chat Monitor</h3>
+                    <div class="chat-container">
+                        <div class="chat-messages" id="systemChatMessages">
+                            <!-- Chat messages will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add Student Modal -->
+    <div class="modal" id="addStudentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Student</h3>
+                <button class="modal-close" id="addStudentModalClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addStudentForm">
+                    <div class="form-group">
+                        <label for="studentName">Student Name *</label>
+                        <input type="text" id="studentName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="studentClass">Class *</label>
+                        <input type="text" id="studentClass" placeholder="e.g., 2C, 5A" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="studentPhoto">Photo URL</label>
+                        <input type="url" id="studentPhoto" placeholder="https://...">
+                    </div>
+                    <div class="form-group">
+                        <label for="parentContact">Parent Contact</label>
+                        <input type="text" id="parentContact" placeholder="e.g., John Smith - (555) 123-4567">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="cancelAddStudent">Cancel</button>
+                <button class="btn-primary" onclick="adminDashboard.addStudent()">
+                    <i class="fas fa-plus"></i>
+                    Add Student
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Student Modal -->
+    <div class="modal" id="editStudentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Student</h3>
+                <button class="modal-close" id="editStudentModalClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editStudentForm">
+                    <div class="form-group">
+                        <label for="editStudentName">Student Name *</label>
+                        <input type="text" id="editStudentName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editStudentClass">Class *</label>
+                        <input type="text" id="editStudentClass" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editStudentPhoto">Photo URL</label>
+                        <input type="url" id="editStudentPhoto">
+                    </div>
+                    <div class="form-group">
+                        <label for="editParentContact">Parent Contact</label>
+                        <input type="text" id="editParentContact" placeholder="e.g., John Smith - (555) 123-4567">
+                    </div>
+                    <div class="form-group">
+                        <label for="editStudentStatus">Status</label>
+                        <select id="editStudentStatus">
+                            <option value="waiting">Waiting</option>
+                            <option value="called">Called</option>
+                            <option value="searching">Searching</option>
+                            <option value="found">Ready</option>
+                            <option value="picked_up">Picked Up</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="cancelEditStudent">Cancel</button>
+                <button class="btn-primary" onclick="adminDashboard.updateStudent()">
+                    <i class="fas fa-save"></i>
+                    Update Student
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <div class="toast-content">
+            <span class="toast-message" id="toastMessage"></span>
+            <button class="toast-close" id="toastClose">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Loading...</p>
+        </div>
+    </div>
+
+    <script src="supabase-config.js"></script>
+    <script src="auth-system.js"></script>
+    <script src="admin-dashboard.js"></script>
+</body>
+</html> 

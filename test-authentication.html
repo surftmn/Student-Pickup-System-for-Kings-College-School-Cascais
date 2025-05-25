@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication Test - Kings College School</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f0f8ff;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .success { background: #d4edda; border-left: 4px solid #28a745; }
+        .error { background: #f8d7da; border-left: 4px solid #dc3545; }
+        .info { background: #d1ecf1; border-left: 4px solid #17a2b8; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        .logout-btn { background: #dc3545; }
+        .logout-btn:hover { background: #c82333; }
+        code { background: #f8f9fa; padding: 2px 5px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Kings College School - Authentication Test</h1>
+    
+    <div class="test-section info">
+        <h3>📋 Test Instructions</h3>
+        <p>Use this page to test your Supabase authentication setup.</p>
+        <ol>
+            <li>Make sure you've created the 4 users in Supabase with Gmail addresses</li>
+            <li>Test login with each role using the buttons below</li>
+            <li>Verify role-based redirects work correctly</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h3>🔐 Current Authentication Status</h3>
+        <div id="authStatus">Checking...</div>
+        <button onclick="checkCurrentAuth()">🔄 Refresh Status</button>
+        <button class="logout-btn" onclick="logoutUser()">🚪 Logout</button>
+    </div>
+
+    <div class="test-section">
+        <h3>🧪 Test Login Credentials</h3>
+        <p>Click these buttons to test login for each role:</p>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0;">
+            <button onclick="testLogin('admin@gmail.com', 'admin123', 'admin')">
+                👑 Test Admin Login
+            </button>
+            <button onclick="testLogin('security@gmail.com', 'security123', 'security')">
+                🛡️ Test Security Login
+            </button>
+            <button onclick="testLogin('monitor@gmail.com', 'monitor123', 'monitor')">
+                👀 Test Monitor Login
+            </button>
+            <button onclick="testLogin('parent@gmail.com', 'parent123', 'parent')">
+                👨‍👩‍👧‍👦 Test Parent Login
+            </button>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>📊 Test Results</h3>
+        <div id="testResults">No tests run yet...</div>
+    </div>
+
+    <div class="test-section">
+        <h3>🔗 Navigation Links</h3>
+        <p>After successful authentication, test these direct links:</p>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <a href="login-supabase.html" style="text-decoration: none;">
+                <button>🏠 Login Page</button>
+            </a>
+            <a href="admin-simple.html" style="text-decoration: none;">
+                <button>👑 Admin Dashboard</button>
+            </a>
+            <a href="security-simple.html" style="text-decoration: none;">
+                <button>🛡️ Security Dashboard</button>
+            </a>
+            <a href="monitor-simple.html" style="text-decoration: none;">
+                <button>👀 Monitor Dashboard</button>
+            </a>
+            <a href="parent-simple.html" style="text-decoration: none;">
+                <button>👨‍👩‍👧‍👦 Parent Dashboard</button>
+            </a>
+        </div>
+    </div>
+
+    <!-- Load Supabase configuration -->
+    <script src="supabase-config.js"></script>
+    
+    <script>
+        let testResults = [];
+
+        function addTestResult(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            testResults.push(`[${timestamp}] ${message}`);
+            updateTestResults();
+        }
+
+        function updateTestResults() {
+            const resultsDiv = document.getElementById('testResults');
+            resultsDiv.innerHTML = testResults.map(result => `<div style="margin: 5px 0; font-family: monospace; font-size: 0.9rem;">${result}</div>`).join('');
+        }
+
+        async function checkCurrentAuth() {
+            const statusDiv = document.getElementById('authStatus');
+            statusDiv.innerHTML = 'Checking authentication...';
+
+            try {
+                const user = await Auth.getCurrentUser();
+                
+                if (user) {
+                    const role = Auth.getUserRole(user);
+                    statusDiv.innerHTML = `
+                        <div class="success">
+                            ✅ <strong>Authenticated</strong><br>
+                            📧 Email: <code>${user.email}</code><br>
+                            👤 Role: <code>${role || 'No role assigned'}</code><br>
+                            🆔 User ID: <code>${user.id}</code>
+                        </div>
+                    `;
+                    addTestResult(`✅ User authenticated: ${user.email} (${role})`, 'success');
+                } else {
+                    statusDiv.innerHTML = '<div class="error">❌ <strong>Not authenticated</strong></div>';
+                    addTestResult('❌ No user authenticated', 'error');
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="error">❌ <strong>Error:</strong> ${error.message}</div>`;
+                addTestResult(`❌ Authentication check failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testLogin(email, password, expectedRole) {
+            addTestResult(`🔄 Testing login: ${email}`, 'info');
+            
+            try {
+                const result = await Auth.signIn(email, password);
+                
+                if (result.success) {
+                    const userRole = Auth.getUserRole(result.user);
+                    
+                    if (userRole === expectedRole) {
+                        addTestResult(`✅ Login successful: ${email} → Role: ${userRole}`, 'success');
+                        
+                        // Check role-based redirect
+                        setTimeout(() => {
+                            checkCurrentAuth();
+                            addTestResult(`🔄 Role-based redirect should work now. Try the navigation links above.`, 'info');
+                        }, 1000);
+                    } else {
+                        addTestResult(`⚠️ Login successful but wrong role: Expected ${expectedRole}, got ${userRole}`, 'warning');
+                    }
+                } else {
+                    addTestResult(`❌ Login failed: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                addTestResult(`❌ Login error: ${error.message}`, 'error');
+            }
+        }
+
+        async function logoutUser() {
+            try {
+                const result = await Auth.signOut();
+                if (result.success) {
+                    addTestResult('🚪 Logout successful', 'success');
+                    checkCurrentAuth();
+                } else {
+                    addTestResult(`❌ Logout failed: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                addTestResult(`❌ Logout error: ${error.message}`, 'error');
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Authentication test page loaded');
+            checkCurrentAuth();
+            addTestResult('🚀 Authentication test page initialized', 'info');
+        });
+    </script>
+</body>
+</html> 

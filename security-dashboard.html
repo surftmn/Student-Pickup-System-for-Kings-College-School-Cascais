@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Dashboard - Kings College School</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="dashboard-styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="dashboard-body">
+    <!-- Header -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <div class="school-logo">
+                <i class="fas fa-crown"></i>
+            </div>
+            <div class="header-info">
+                <h1>Kings College School</h1>
+                <p>Security Portal</p>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="user-info">
+                <i class="fas fa-user-circle"></i>
+                <span id="userName">Loading...</span>
+            </div>
+            <button class="logout-btn" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+        <div class="dashboard-container">
+            <!-- Welcome Message -->
+            <div class="welcome-card">
+                <div class="welcome-content">
+                    <h2><i class="fas fa-shield-alt"></i> Security Gate</h2>
+                    <p>Search for students and manage pickup queue at the school gate.</p>
+                </div>
+                <div class="time-display">
+                    <i class="fas fa-clock"></i>
+                    <span id="currentTime">Loading...</span>
+                </div>
+            </div>
+
+            <!-- Search Section -->
+            <div class="search-section">
+                <h3><i class="fas fa-search"></i> Student Search</h3>
+                <div class="search-bar">
+                    <input type="text" id="searchInput" class="search-input" 
+                           placeholder="Search by student name, class, or parent name...">
+                    <button class="search-btn" onclick="securityDashboard.searchStudents()">
+                        <i class="fas fa-search"></i>
+                        Search
+                    </button>
+                </div>
+                
+                <!-- Search Results -->
+                <div class="search-results" id="searchResults">
+                    <!-- Search results will appear here -->
+                </div>
+            </div>
+
+            <!-- Pickup Queue Section -->
+            <div class="queue-section">
+                <h3><i class="fas fa-clipboard-list"></i> Ready for Pickup</h3>
+                <p class="section-subtitle">Students found by monitors and ready at the gate</p>
+                
+                <div class="pickup-queue-list" id="pickupQueueList">
+                    <!-- Ready students will be populated dynamically -->
+                </div>
+            </div>
+
+            <!-- Chat Section -->
+            <div class="chat-section">
+                <h3><i class="fas fa-comments"></i> Live Chat</h3>
+                <div class="chat-container" id="chatContainer">
+                    <div class="chat-messages" id="chatMessages">
+                        <!-- Chat messages will be populated here -->
+                    </div>
+                    <div class="chat-input-container">
+                        <input type="text" id="chatInput" placeholder="Type a message to monitors and parents..."
+                               onkeypress="if(event.key==='Enter') securityDashboard.sendMessage()">
+                        <button class="btn-primary" onclick="securityDashboard.sendMessage()">
+                            <i class="fas fa-paper-plane"></i>
+                            Send
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Student Details Modal -->
+    <div class="modal" id="studentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalStudentName">Student Details</h3>
+                <button class="modal-close" id="modalClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="student-details-view">
+                    <div class="child-photo-large" id="modalStudentPhoto">
+                        <img src="" alt="" id="modalStudentImage">
+                    </div>
+                    <div class="student-info-detailed">
+                        <h4 id="modalStudentDetails">Loading...</h4>
+                        <div class="detail-item">
+                            <strong>Class:</strong>
+                            <span id="modalStudentClass">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Status:</strong>
+                            <span id="modalStudentStatus">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Last Updated:</strong>
+                            <span id="modalLastUpdated">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="cancelModal">Close</button>
+                <button class="btn-success" id="markPickedUp" style="display: none;">
+                    <i class="fas fa-check-circle"></i>
+                    Mark as Picked Up
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <div class="toast-content">
+            <span class="toast-message" id="toastMessage"></span>
+            <button class="toast-close" id="toastClose">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Loading...</p>
+        </div>
+    </div>
+
+    <script src="supabase-config.js"></script>
+    <script src="auth-system.js"></script>
+    <script src="security-dashboard.js"></script>
+</body>
+</html> 

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 5px; }
+        button:hover { background: #0056b3; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 5px; font-size: 12px; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>🔧 Admin Dashboard Diagnostic Test</h1>
+    <p>Testing admin dashboard components step by step</p>
+
+    <div id="results"></div>
+    
+    <button onclick="testAuth()">1. Test Authentication</button>
+    <button onclick="testSupabase()">2. Test Supabase</button>
+    <button onclick="testDashboard()">3. Test Dashboard Load</button>
+    <button onclick="clearResults()">Clear Results</button>
+    <br><br>
+    <button onclick="goToRealDashboard()">Go to Real Dashboard</button>
+    <button onclick="goToLogin()">Go to Login</button>
+
+    <script src="supabase-config.js"></script>
+    <script src="auth-system.js"></script>
+
+    <script>
+        function addResult(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.innerHTML = `[${new Date().toLocaleTimeString()}] ${message}`;
+            results.appendChild(div);
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        function testAuth() {
+            addResult('Testing authentication system...', 'info');
+            
+            try {
+                // Check if AuthSystem is loaded
+                if (typeof AuthSystem === 'undefined') {
+                    addResult('❌ AuthSystem class not found', 'error');
+                    return;
+                }
+                addResult('✅ AuthSystem class loaded', 'success');
+
+                // Check if we have a current user
+                const user = AuthSystem.getCurrentUser();
+                if (!user) {
+                    addResult('⚠️ No current user found - need to login first', 'warning');
+                    addResult('Redirecting to login in 3 seconds...', 'info');
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 3000);
+                    return;
+                }
+                
+                addResult(`✅ User found: ${user.name} (${user.role})`, 'success');
+                
+                // Check if user is admin
+                if (user.role !== 'admin') {
+                    addResult(`❌ User role is '${user.role}', but 'admin' required`, 'error');
+                    return;
+                }
+                
+                addResult('✅ User has admin privileges', 'success');
+                
+            } catch (error) {
+                addResult(`❌ Authentication error: ${error.message}`, 'error');
+            }
+        }
+
+        function testSupabase() {
+            addResult('Testing Supabase connection...', 'info');
+            
+            try {
+                // Check if Supabase is loaded
+                if (typeof window.supabase === 'undefined') {
+                    addResult('❌ Supabase client not found', 'error');
+                    return;
+                }
+                addResult('✅ Supabase client loaded', 'success');
+
+                // Check if supabaseManager is loaded
+                if (typeof window.supabaseManager === 'undefined') {
+                    addResult('❌ SupabaseManager not found', 'error');
+                    return;
+                }
+                addResult('✅ SupabaseManager loaded', 'success');
+
+                // Test database connection
+                testDatabaseConnection();
+                
+            } catch (error) {
+                addResult(`❌ Supabase error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testDatabaseConnection() {
+            try {
+                addResult('Testing database connection...', 'info');
+                
+                const result = await window.supabaseManager.getStudents();
+                if (result.success) {
+                    addResult(`✅ Database connected - found ${result.data.length} students`, 'success');
+                } else {
+                    addResult(`❌ Database error: ${result.error}`, 'error');
+                }
+                
+            } catch (error) {
+                addResult(`❌ Database connection failed: ${error.message}`, 'error');
+            }
+        }
+
+        function testDashboard() {
+            addResult('Testing dashboard requirements...', 'info');
+            
+            // Check all required elements exist
+            const requiredElements = [
+                'userName', 'totalStudents', 'pickedUpToday', 
+                'calledToday', 'pendingPickup', 'studentsTableBody'
+            ];
+            
+            let missingElements = [];
+            
+            requiredElements.forEach(id => {
+                const element = document.getElementById(id);
+                if (!element) {
+                    missingElements.push(id);
+                }
+            });
+            
+            if (missingElements.length > 0) {
+                addResult(`❌ Missing elements: ${missingElements.join(', ')}`, 'error');
+                addResult('Note: This is expected in test page - these elements exist in real dashboard', 'info');
+            } else {
+                addResult('✅ All required elements found', 'success');
+            }
+            
+            // Test if AdminDashboard class would load
+            try {
+                // Don't actually create it, just test if the class exists
+                if (typeof AdminDashboard !== 'undefined') {
+                    addResult('✅ AdminDashboard class available', 'success');
+                } else {
+                    addResult('❌ AdminDashboard class not loaded', 'error');
+                }
+            } catch (error) {
+                addResult(`❌ AdminDashboard test failed: ${error.message}`, 'error');
+            }
+        }
+
+        function goToRealDashboard() {
+            addResult('Redirecting to real admin dashboard...', 'info');
+            window.location.href = 'admin-dashboard.html';
+        }
+
+        function goToLogin() {
+            addResult('Redirecting to login...', 'info');
+            window.location.href = 'login.html';
+        }
+
+        // Auto-run basic tests
+        document.addEventListener('DOMContentLoaded', function() {
+            addResult('🚀 Admin Dashboard Test Page Loaded', 'success');
+            addResult('Click buttons above to run diagnostic tests', 'info');
+            
+            // Auto-test authentication
+            setTimeout(() => {
+                testAuth();
+            }, 500);
+        });
+    </script>
+</body>
+</html> 

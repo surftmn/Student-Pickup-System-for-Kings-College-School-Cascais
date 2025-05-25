@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase Debug - Kings College School</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .debug-section {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .success { background: #d4edda; border-left: 4px solid #28a745; }
+        .error { background: #f8d7da; border-left: 4px solid #dc3545; }
+        .info { background: #d1ecf1; border-left: 4px solid #17a2b8; }
+        .warning { background: #fff3cd; border-left: 4px solid #ffc107; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #6c757d; cursor: not-allowed; }
+        .test-btn { background: #28a745; }
+        .test-btn:hover { background: #1e7e34; }
+        code { 
+            background: #f8f9fa; 
+            padding: 2px 6px; 
+            border-radius: 3px; 
+            font-family: monospace;
+            display: block;
+            margin: 10px 0;
+            word-break: break-all;
+        }
+        .log-entry {
+            font-family: monospace;
+            font-size: 12px;
+            margin: 5px 0;
+            padding: 5px;
+            background: #f8f9fa;
+            border-radius: 3px;
+        }
+        .timestamp {
+            color: #6c757d;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Supabase Debug Tool - Kings College School</h1>
+    
+    <div class="debug-section">
+        <h3>📊 Connection Status</h3>
+        <div id="connectionStatus">Testing connection...</div>
+        <button onclick="testConnection()">🔄 Test Connection</button>
+    </div>
+
+    <div class="debug-section">
+        <h3>🔑 Configuration Check</h3>
+        <div id="configStatus">Checking configuration...</div>
+    </div>
+
+    <div class="debug-section">
+        <h3>👤 User Authentication Tests</h3>
+        <p>Test login with each role:</p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px;">
+            <button class="test-btn" onclick="testLogin('security@gmail.com', 'security123')">
+                🛡️ Test Security Login
+            </button>
+            <button class="test-btn" onclick="testLogin('admin@gmail.com', 'admin123')">
+                👑 Test Admin Login
+            </button>
+            <button class="test-btn" onclick="testLogin('monitor@gmail.com', 'monitor123')">
+                👀 Test Monitor Login
+            </button>
+            <button class="test-btn" onclick="testLogin('parent@gmail.com', 'parent123')">
+                👨‍👩‍👧‍👦 Test Parent Login
+            </button>
+        </div>
+        <div id="authResults"></div>
+    </div>
+
+    <div class="debug-section">
+        <h3>📝 Debug Log</h3>
+        <button onclick="clearLog()">🗑️ Clear Log</button>
+        <div id="debugLog"></div>
+    </div>
+
+    <div class="debug-section">
+        <h3>🔍 Detailed Error Information</h3>
+        <div id="errorDetails"></div>
+    </div>
+
+    <!-- Load Supabase configuration -->
+    <script src="supabase-config.js"></script>
+    
+    <script>
+        let debugLog = [];
+
+        function addLog(message, level = 'info') {
+            const timestamp = new Date().toISOString();
+            debugLog.push({ timestamp, message, level });
+            updateLogDisplay();
+        }
+
+        function updateLogDisplay() {
+            const logContainer = document.getElementById('debugLog');
+            logContainer.innerHTML = debugLog.map(entry => 
+                `<div class="log-entry">
+                    <span class="timestamp">[${entry.timestamp}]</span> 
+                    <span class="${entry.level}">${entry.level.toUpperCase()}:</span> 
+                    ${entry.message}
+                </div>`
+            ).join('');
+            
+            // Auto-scroll to bottom
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function clearLog() {
+            debugLog = [];
+            updateLogDisplay();
+            document.getElementById('errorDetails').innerHTML = '';
+        }
+
+        async function testConnection() {
+            const statusDiv = document.getElementById('connectionStatus');
+            statusDiv.innerHTML = 'Testing connection...';
+            
+            addLog('Starting connection test');
+            
+            try {
+                // Test if supabase client was created
+                if (!supabase) {
+                    throw new Error('Supabase client not initialized');
+                }
+                addLog('✓ Supabase client initialized');
+
+                // Test basic connection with a simple query
+                const { data, error } = await supabase.auth.getSession();
+                
+                if (error) {
+                    addLog(`❌ Connection test failed: ${error.message}`, 'error');
+                    statusDiv.innerHTML = `
+                        <div class="error">
+                            ❌ <strong>Connection Failed</strong><br>
+                            Error: ${error.message}<br>
+                            <small>Check your Supabase URL and API key</small>
+                        </div>
+                    `;
+                    return false;
+                }
+                
+                addLog('✓ Successfully connected to Supabase');
+                statusDiv.innerHTML = `
+                    <div class="success">
+                        ✅ <strong>Connection Successful</strong><br>
+                        Supabase client is properly configured and can communicate with the server.
+                    </div>
+                `;
+                return true;
+                
+            } catch (error) {
+                addLog(`❌ Connection error: ${error.message}`, 'error');
+                statusDiv.innerHTML = `
+                    <div class="error">
+                        ❌ <strong>Connection Error</strong><br>
+                        ${error.message}<br>
+                        <small>Check console for more details</small>
+                    </div>
+                `;
+                console.error('Connection test error:', error);
+                return false;
+            }
+        }
+
+        function checkConfiguration() {
+            const configDiv = document.getElementById('configStatus');
+            
+            try {
+                const url = SUPABASE_URL;
+                const key = SUPABASE_ANON_KEY;
+                
+                if (!url || !key) {
+                    configDiv.innerHTML = `
+                        <div class="error">
+                            ❌ <strong>Configuration Missing</strong><br>
+                            URL or API key not found in supabase-config.js
+                        </div>
+                    `;
+                    addLog('❌ Missing Supabase configuration', 'error');
+                    return;
+                }
+                
+                configDiv.innerHTML = `
+                    <div class="success">
+                        ✅ <strong>Configuration Found</strong><br>
+                        URL: <code>${url}</code><br>
+                        API Key: <code>${key.substring(0, 20)}...${key.substring(key.length - 10)}</code>
+                    </div>
+                `;
+                addLog('✓ Supabase configuration loaded');
+                
+            } catch (error) {
+                configDiv.innerHTML = `
+                    <div class="error">
+                        ❌ <strong>Configuration Error</strong><br>
+                        ${error.message}
+                    </div>
+                `;
+                addLog(`❌ Configuration error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testLogin(email, password) {
+            const resultsDiv = document.getElementById('authResults');
+            const errorDiv = document.getElementById('errorDetails');
+            
+            addLog(`🔄 Testing login for ${email}`);
+            
+            try {
+                // Clear previous session first
+                await supabase.auth.signOut();
+                addLog('✓ Cleared previous session');
+                
+                // Attempt login
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+                
+                if (error) {
+                    addLog(`❌ Login failed for ${email}: ${error.message}`, 'error');
+                    
+                    // Show detailed error information
+                    errorDiv.innerHTML = `
+                        <div class="error">
+                            <h4>❌ Login Error Details</h4>
+                            <p><strong>Email:</strong> ${email}</p>
+                            <p><strong>Error Message:</strong> ${error.message}</p>
+                            <p><strong>Error Code:</strong> ${error.status || 'Unknown'}</p>
+                            <code>${JSON.stringify(error, null, 2)}</code>
+                            
+                            <h5>🔍 Possible Causes:</h5>
+                            <ul>
+                                <li>User doesn't exist in Supabase</li>
+                                <li>Wrong password</li>
+                                <li>Email confirmation required</li>
+                                <li>Account disabled</li>
+                                <li>Rate limiting</li>
+                            </ul>
+                            
+                            <h5>💡 Solutions:</h5>
+                            <ul>
+                                <li>Check if user exists in Supabase dashboard > Authentication > Users</li>
+                                <li>Create user manually in Supabase dashboard</li>
+                                <li>Verify email confirmation status</li>
+                                <li>Check Supabase project logs</li>
+                            </ul>
+                        </div>
+                    `;
+                    
+                    resultsDiv.innerHTML = `
+                        <div class="error">
+                            ❌ Login failed for <strong>${email}</strong>: ${error.message}
+                        </div>
+                    `;
+                    return;
+                }
+                
+                if (data.user) {
+                    const role = data.user.user_metadata?.role || 'No role';
+                    addLog(`✅ Login successful for ${email} with role: ${role}`, 'success');
+                    
+                    resultsDiv.innerHTML = `
+                        <div class="success">
+                            ✅ Login successful for <strong>${email}</strong><br>
+                            Role: <strong>${role}</strong><br>
+                            User ID: <code>${data.user.id}</code>
+                        </div>
+                    `;
+                    
+                    errorDiv.innerHTML = `
+                        <div class="success">
+                            <h4>✅ Login Success Details</h4>
+                            <p><strong>Email:</strong> ${email}</p>
+                            <p><strong>Role:</strong> ${role}</p>
+                            <p><strong>User ID:</strong> ${data.user.id}</p>
+                            <p><strong>Email Confirmed:</strong> ${data.user.email_confirmed_at ? 'Yes' : 'No'}</p>
+                            <code>${JSON.stringify(data.user, null, 2)}</code>
+                        </div>
+                    `;
+                } else {
+                    addLog(`⚠️ Login returned no user data for ${email}`, 'warning');
+                    resultsDiv.innerHTML = `
+                        <div class="warning">
+                            ⚠️ Login returned no user data for <strong>${email}</strong>
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                addLog(`❌ Network error during login for ${email}: ${error.message}`, 'error');
+                
+                errorDiv.innerHTML = `
+                    <div class="error">
+                        <h4>🌐 Network Error</h4>
+                        <p><strong>Email:</strong> ${email}</p>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                        <code>${JSON.stringify(error, null, 2)}</code>
+                        
+                        <h5>🔍 Network Issues:</h5>
+                        <ul>
+                            <li>Internet connection problems</li>
+                            <li>Supabase service unavailable</li>
+                            <li>Incorrect Supabase URL</li>
+                            <li>Invalid API key</li>
+                            <li>CORS issues</li>
+                        </ul>
+                    </div>
+                `;
+                
+                resultsDiv.innerHTML = `
+                    <div class="error">
+                        🌐 Network error for <strong>${email}</strong>: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            addLog('🚀 Debug tool initialized');
+            checkConfiguration();
+            testConnection();
+        });
+    </script>
+</body>
+</html> 

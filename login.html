@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Kings College School - Student Pickup System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 500px;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Header with crown logo */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px 20px 0 0;
+            padding: 40px 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .crown-logo {
+            color: #ffd700;
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .school-title {
+            color: #1e40af;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .school-subtitle {
+            color: #64748b;
+            font-size: 1.1rem;
+            font-weight: 400;
+        }
+
+        /* Main login card */
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 0 0 20px 20px;
+            padding: 40px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Role selection buttons */
+        .role-tabs {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .role-tab {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            padding: 20px 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #64748b;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            text-align: center;
+            min-height: 80px;
+        }
+
+        .role-tab i {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .role-tab:hover {
+            background: #f1f5f9;
+            border-color: #3b82f6;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.15);
+        }
+
+        .role-tab.active {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Form styles */
+        .login-form {
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #374151;
+            font-size: 1rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 18px 20px;
+            border: 2px solid #e5e7eb;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            background: white;
+            color: #374151;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+
+        .password-input {
+            position: relative;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #9ca3af;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: color 0.3s ease;
+        }
+
+        .password-toggle:hover {
+            color: #3b82f6;
+        }
+
+        .sign-in-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 20px 24px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+        }
+
+        .sign-in-btn:hover {
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(59, 130, 246, 0.4);
+        }
+
+        .sign-in-btn:active {
+            transform: translateY(0);
+        }
+
+        .sign-in-btn:disabled {
+            background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 0 10px 25px rgba(156, 163, 175, 0.3);
+        }
+
+        /* Message styles */
+        .message {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .message.error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+        }
+
+        .message.success {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #16a34a;
+        }
+
+        /* Loading spinner */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid transparent;
+            border-top: 2px solid currentColor;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .login-container {
+                max-width: 90%;
+            }
+            
+            .role-tabs {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .role-tab {
+                padding: 15px;
+                min-height: 60px;
+            }
+            
+            .school-title {
+                font-size: 2rem;
+            }
+            
+            .header {
+                padding: 30px 20px;
+            }
+            
+            .login-card {
+                padding: 30px 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="crown-logo">
+                <i class="fas fa-crown"></i>
+            </div>
+            <h1 class="school-title">Kings College School</h1>
+            <p class="school-subtitle">Cascais - Student Pickup Management System</p>
+        </div>
+
+        <!-- Login Card -->
+        <div class="login-card">
+            <!-- Messages -->
+            <div class="message error" id="errorMessage"></div>
+            <div class="message success" id="successMessage"></div>
+
+            <!-- Debug Panel (temporary) -->
+            <!-- DEBUG PANEL REMOVED FOR PRODUCTION -->
+
+            <!-- Role Selection Tabs -->
+            <div class="role-tabs">
+                <button class="role-tab active" data-role="parent" id="parentTab">
+                    <i class="fas fa-user-friends"></i>
+                    Parent
+                </button>
+                <button class="role-tab" data-role="security" id="securityTab">
+                    <i class="fas fa-shield-alt"></i>
+                    Security
+                </button>
+                <button class="role-tab" data-role="monitor" id="monitorTab">
+                    <i class="fas fa-desktop"></i>
+                    Monitor
+                </button>
+                <button class="role-tab" data-role="admin" id="adminTab">
+                    <i class="fas fa-crown"></i>
+                    Super Admin
+                </button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" class="login-form">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required placeholder="Enter your email">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="password-input">
+                        <input type="password" id="password" name="password" required placeholder="Enter your password">
+                        <button type="button" class="password-toggle" id="passwordToggle">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="sign-in-btn" id="signInBtn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Sign In
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Embedded Supabase Configuration
+        const SUPABASE_URL = 'https://hzzaauogpmlnymxguppp.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6emFhdW9ncG1sbnlteGd1cHBwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwNzU2NTAsImV4cCI6MjA2MzY1MTY1MH0.16_3QrnieC_GdBfiuaRpaw4vsXTRCgw0hXXDNqbzFQQ';
+
+        let supabase = null;
+        let selectedRole = 'parent'; // Default selected role
+
+        // Debug function for visual feedback
+        function addDebugLog(message) {
+            console.log(message);
+            // DEBUG PANEL REMOVED FOR PRODUCTION
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                console.log('Initializing Supabase...');
+                
+                // Wait for Supabase library to load
+                if (typeof window.supabase !== 'undefined') {
+                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    console.log('✅ Supabase initialized successfully');
+                } else {
+                    console.error('❌ Supabase library not loaded');
+                    showError('Failed to load authentication system');
+                    return;
+                }
+
+                initializeEventListeners();
+            } catch (error) {
+                console.error('Initialization error:', error);
+                showError('System initialization failed');
+            }
+        });
+
+        function initializeEventListeners() {
+            const loginForm = document.getElementById('loginForm');
+            const passwordToggle = document.getElementById('passwordToggle');
+            const roleTabs = document.querySelectorAll('.role-tab');
+
+            if (loginForm) {
+                loginForm.addEventListener('submit', handleLogin);
+            }
+
+            if (passwordToggle) {
+                passwordToggle.addEventListener('click', togglePasswordVisibility);
+            }
+
+            // Role tab selection
+            if (roleTabs.length > 0) {
+                roleTabs.forEach(tab => {
+                    tab.addEventListener('click', (e) => {
+                        selectRole(e.target.closest('.role-tab').dataset.role);
+                    });
+                });
+            }
+        }
+
+        function selectRole(role) {
+            selectedRole = role;
+            console.log('Selected role:', selectedRole);
+            
+            // Update active tab
+            document.querySelectorAll('.role-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector(`[data-role="${role}"]`).classList.add('active');
+            
+            // Clear any existing messages
+            hideMessages();
+        }
+
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('password');
+            const toggleIcon = document.querySelector('#passwordToggle i');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.className = 'fas fa-eye-slash';
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.className = 'fas fa-eye';
+            }
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+
+            if (!email || !password) {
+                showError('Please enter both email and password');
+                return;
+            }
+
+            if (!supabase) {
+                showError('Authentication system not ready');
+                return;
+            }
+
+            setLoading(true);
+            hideMessages();
+
+            try {
+                console.log(`Attempting login for: ${email} as ${selectedRole}`);
+                
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+
+                if (error) {
+                    console.error('Login error:', error);
+                    showError(`Login failed: ${error.message}`);
+                    return;
+                }
+
+                if (data.user) {
+                    // Debug: Let's see what user data we get
+                    console.log('Full user data:', data.user);
+                    console.log('User metadata:', data.user.user_metadata);
+                    console.log('App metadata:', data.user.app_metadata);
+                    
+                    const userRole = data.user.user_metadata?.role || data.user.app_metadata?.role || getRoleFromEmail(email);
+                    console.log(`✅ Login successful for ${email}, user role: ${userRole}, selected role: ${selectedRole}`);
+                    
+                    // Check if user role matches selected role
+                    if (userRole !== selectedRole) {
+                        showError(`This account is not authorized for ${selectedRole} access. Please select the correct role or use appropriate credentials.`);
+                        return;
+                    }
+                    
+                    // Get target dashboard page
+                    const targetPage = getDashboardPage(selectedRole);
+                    console.log(`🎯 Redirecting to: ${targetPage}`);
+                    
+                    // Show success message briefly before redirect
+                    showSuccess(`Welcome! Taking you to the ${selectedRole} dashboard...`);
+                    
+                    // Automatic redirect after 1.5 seconds
+                    setTimeout(() => {
+                        window.location.href = targetPage;
+                    }, 1500);
+                    
+                } else {
+                    showError('Login failed: No user data returned');
+                }
+
+            } catch (error) {
+                console.error('Login exception:', error);
+                showError(`Network error: ${error.message}`);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        // Fallback function to determine role from email if metadata is missing
+        function getRoleFromEmail(email) {
+            const emailToRole = {
+                'test@test.com': 'admin',
+                'admin@gmail.com': 'admin',
+                'security@gmail.com': 'security',
+                'monitor@gmail.com': 'monitor',
+                'parent@gmail.com': 'parent'
+            };
+            
+            return emailToRole[email] || 'parent'; // default to parent if unknown
+        }
+
+        // Helper function to get dashboard page for each role
+        function getDashboardPage(role) {
+            const roleToPage = {
+                'admin': 'admin-simple.html',
+                'security': 'security-simple.html',
+                'monitor': 'monitor-simple.html',
+                'parent': 'parent-simple.html'
+            };
+            
+            return roleToPage[role] || 'parent-simple.html';
+        }
+
+        function setLoading(isLoading) {
+            const signInBtn = document.getElementById('signInBtn');
+            if (isLoading) {
+                signInBtn.disabled = true;
+                signInBtn.innerHTML = '<div class="spinner"></div> Signing In...';
+            } else {
+                signInBtn.disabled = false;
+                signInBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
+            }
+        }
+
+        function showError(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+            
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            successMessage.style.display = 'none';
+        }
+
+        function showSuccess(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+            
+            successMessage.innerHTML = message;
+            successMessage.style.display = 'block';
+            errorMessage.style.display = 'none';
+        }
+
+        function hideMessages() {
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

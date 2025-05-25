@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kings College School - Parent Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 20px 40px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .crown-logo {
+            color: #ffd700;
+            font-size: 2.5rem;
+        }
+
+        .header-title {
+            color: #1e40af;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .header-subtitle {
+            color: #64748b;
+            font-size: 1rem;
+            margin-top: 4px;
+        }
+
+        .logout-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logout-btn:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
+        }
+
+        /* Main content */
+        .main-content {
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .welcome-section {
+            text-align: left;
+            margin-bottom: 40px;
+        }
+
+        .welcome-title {
+            color: white;
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        /* Student cards grid */
+        .student-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+        }
+
+        .student-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .student-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, transparent 0%, rgba(59, 130, 246, 0.05) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .student-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .student-card:hover::before {
+            opacity: 1;
+        }
+
+        .click-instruction {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            color: #64748b;
+            font-size: 0.9rem;
+            font-weight: 500;
+            opacity: 0.8;
+        }
+
+        .student-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+            font-weight: 700;
+            margin: 20px auto 25px;
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        .student-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .student-name {
+            color: #1e40af;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .student-class {
+            color: #64748b;
+            font-size: 1.2rem;
+            font-weight: 500;
+            margin-bottom: 25px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .pickup-status {
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            display: inline-block;
+            margin-top: 15px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .pickup-status.waiting {
+            background: #fef3cd;
+            color: #92400e;
+            border: 2px solid #fbbf24;
+        }
+
+        .pickup-status.called {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 2px solid #3b82f6;
+        }
+
+        .pickup-status.ready {
+            background: #d1fae5;
+            color: #065f46;
+            border: 2px solid #10b981;
+        }
+
+        .pickup-status.completed {
+            background: #f3f4f6;
+            color: #4b5563;
+            border: 2px solid #9ca3af;
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1001;
+            max-width: 350px;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            border-left: 4px solid #10b981;
+        }
+
+        .toast.error {
+            border-left: 4px solid #ef4444;
+        }
+
+        .toast.info {
+            border-left: 4px solid #3b82f6;
+        }
+
+        .toast-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            color: #6b7280;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+        .toast-close:hover {
+            background: #f3f4f6;
+        }
+
+        /* Loading indicator */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading-overlay.show {
+            display: flex;
+        }
+
+        .loading-spinner {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .loading-spinner i {
+            font-size: 2rem;
+            color: #3b82f6;
+            margin-bottom: 15px;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .header {
+                padding: 15px 20px;
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+
+            .welcome-title {
+                font-size: 2.2rem;
+            }
+
+            .student-cards {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .student-card {
+                padding: 30px 25px;
+            }
+
+            .student-avatar {
+                width: 100px;
+                height: 100px;
+                font-size: 2.5rem;
+            }
+
+            .student-name {
+                font-size: 1.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-left">
+            <div class="crown-logo">
+                <i class="fas fa-crown"></i>
+            </div>
+            <div>
+                <h1 class="header-title">Kings College School</h1>
+                <p class="header-subtitle">Cascais - Student Pickup Management System</p>
+            </div>
+        </div>
+        <button class="logout-btn" onclick="logout()">
+            <i class="fas fa-sign-out-alt"></i>
+            Logout
+        </button>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="welcome-section">
+            <h1 class="welcome-title">Welcome, Sarah Johnson</h1>
+        </div>
+
+        <!-- Student Cards -->
+        <div class="student-cards" id="studentCards">
+            <!-- Student cards will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Processing pickup request...</p>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <div class="toast-content">
+            <span class="toast-message" id="toastMessage"></span>
+            <button class="toast-close" id="toastClose">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Load Supabase configuration -->
+    <script src="supabase-config.js"></script>
+    
+    <script>
+        // Sample parent's children data
+        const parentStudents = [
+            { 
+                id: 1, 
+                name: "Emma Johnson", 
+                class: "Class 2C", 
+                status: "waiting",
+                photo: null 
+            },
+            { 
+                id: 2, 
+                name: "Sophia Williams", 
+                class: "Class 1A", 
+                status: "waiting",
+                photo: null 
+            }
+        ];
+
+        // DOM elements
+        const studentCardsContainer = document.getElementById('studentCards');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+
+        function renderStudentCards() {
+            studentCardsContainer.innerHTML = '';
+
+            parentStudents.forEach(student => {
+                const card = document.createElement('div');
+                card.className = 'student-card';
+                card.onclick = () => requestPickup(student);
+
+                card.innerHTML = `
+                    <div class="click-instruction">Click to call for pickup</div>
+                    
+                    <div class="student-avatar">
+                        ${student.photo ? 
+                            `<img src="${student.photo}" alt="${student.name}">` : 
+                            student.name.charAt(0)
+                        }
+                    </div>
+                    
+                    <h3 class="student-name">${student.name}</h3>
+                    <p class="student-class">${student.class}</p>
+                    
+                    <div class="pickup-status ${student.status}">
+                        ${getStatusLabel(student.status)}
+                    </div>
+                `;
+
+                studentCardsContainer.appendChild(card);
+            });
+        }
+
+        function getStatusLabel(status) {
+            const labels = {
+                'waiting': 'Ready for Pickup',
+                'called': 'Being Located',
+                'ready': 'Ready at Gate',
+                'completed': 'Picked Up'
+            };
+            return labels[status] || status;
+        }
+
+        function requestPickup(student) {
+            if (student.status === 'completed') {
+                showToast(`${student.name} has already been picked up today`, 'info');
+                return;
+            }
+
+            if (student.status === 'called') {
+                showToast(`${student.name} is already being located`, 'info');
+                return;
+            }
+
+            if (student.status === 'ready') {
+                showToast(`${student.name} is ready for pickup at the gate`, 'success');
+                return;
+            }
+
+            // Show loading
+            loadingOverlay.classList.add('show');
+
+            // Simulate API call
+            setTimeout(() => {
+                // Update student status
+                student.status = 'called';
+                
+                // Hide loading
+                loadingOverlay.classList.remove('show');
+                
+                // Show success message
+                showToast(`Pickup request sent for ${student.name}. A monitor will locate them shortly.`, 'success');
+                
+                // Re-render cards
+                renderStudentCards();
+
+                // Simulate status updates
+                simulateStatusUpdates(student);
+            }, 2000);
+        }
+
+        function simulateStatusUpdates(student) {
+            // After 30 seconds, update to "ready"
+            setTimeout(() => {
+                if (student.status === 'called') {
+                    student.status = 'ready';
+                    renderStudentCards();
+                    showToast(`${student.name} is now ready for pickup at the gate!`, 'success');
+                }
+            }, 30000);
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toastMessage.textContent = message;
+            toast.className = `toast ${type} show`;
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 5000);
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Close toast functionality
+        document.getElementById('toastClose').addEventListener('click', function() {
+            document.getElementById('toast').classList.remove('show');
+        });
+
+        // Initialize page - PARENT ONLY
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                console.log('Parent dashboard loading...');
+                
+                // TEMPORARILY DISABLED: Authentication check
+                // const isAuthenticated = await checkAuth('parent');
+                // if (!isAuthenticated) {
+                //     return; // Will redirect to login
+                // }
+                
+                console.log('⚠️ Authentication check temporarily disabled for testing');
+                console.log('Parent dashboard initializing...');
+                renderStudentCards();
+                console.log('Parent dashboard loaded successfully');
+            } catch (error) {
+                console.error('Parent dashboard initialization failed:', error);
+                showToast('System initialization failed. Please refresh the page.', 'error');
+            }
+        });
+    </script>
+</body>
+</html> 

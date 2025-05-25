@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Connection Test - Kings College School</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #1e3a8a 0%, #60a5fa 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+        }
+        .success { background-color: #f0fdf4; border-color: #22c55e; }
+        .error { background-color: #fef2f2; border-color: #ef4444; }
+        .warning { background-color: #fffbeb; border-color: #f59e0b; }
+        .info { background-color: #f0f9ff; border-color: #3b82f6; }
+        
+        button {
+            background: #1e3a8a;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #1e40af; }
+        
+        pre {
+            background: #f8fafc;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Database Connection Test</h1>
+            <p>Kings College School Pickup System Diagnostics</p>
+        </div>
+
+        <div class="test-section info">
+            <h3>1. JavaScript Libraries</h3>
+            <div id="jsTest">Testing...</div>
+        </div>
+
+        <div class="test-section info">
+            <h3>2. Supabase Client</h3>
+            <div id="supabaseTest">Testing...</div>
+        </div>
+
+        <div class="test-section info">
+            <h3>3. Database Tables</h3>
+            <div id="tablesTest">Testing...</div>
+            <button onclick="testTables()">Test Tables</button>
+        </div>
+
+        <div class="test-section info">
+            <h3>4. Sample Data</h3>
+            <div id="dataTest">Click button to test...</div>
+            <button onclick="testData()">Test Data</button>
+            <button onclick="createSampleData()">Create Sample Data</button>
+        </div>
+
+        <div class="test-section info">
+            <h3>5. Manual Tests</h3>
+            <button onclick="window.supabaseManager?.testConnection()">Test Connection</button>
+            <button onclick="console.log('Supabase Manager:', window.supabaseManager)">Log Manager</button>
+            <button onclick="location.href='login.html'">Go to Login</button>
+        </div>
+
+        <div class="test-section info">
+            <h3>6. Debug Information</h3>
+            <pre id="debugInfo">Loading debug info...</pre>
+        </div>
+    </div>
+
+    <script src="supabase-config.js"></script>
+    <script>
+        // Test JavaScript libraries
+        document.getElementById('jsTest').innerHTML = 
+            window.supabase ? 
+            '<span style="color: green;">✅ Supabase JS library loaded</span>' : 
+            '<span style="color: red;">❌ Supabase JS library not found</span>';
+
+        // Test Supabase client
+        setTimeout(() => {
+            const managerTest = window.supabaseManager ? 
+                '<span style="color: green;">✅ Supabase Manager created</span>' : 
+                '<span style="color: red;">❌ Supabase Manager not found</span>';
+            document.getElementById('supabaseTest').innerHTML = managerTest;
+            
+            // Update debug info
+            document.getElementById('debugInfo').textContent = `
+Supabase URL: ${window.supabaseManager?.supabase?.supabaseUrl || 'Not found'}
+Manager exists: ${!!window.supabaseManager}
+Client exists: ${!!window.supabaseManager?.supabase}
+Tables config: ${JSON.stringify(window.supabaseManager?.tables || 'Not found', null, 2)}
+            `.trim();
+        }, 100);
+
+        async function testTables() {
+            const testDiv = document.getElementById('tablesTest');
+            testDiv.innerHTML = 'Testing database tables...';
+            
+            try {
+                if (!window.supabaseManager) {
+                    throw new Error('Supabase Manager not found');
+                }
+                
+                // Test each table
+                const tests = [
+                    { name: 'students', test: () => window.supabaseManager.getStudents() },
+                    { name: 'pickup_log', test: () => window.supabaseManager.getPickupLog() },
+                    { name: 'chat_messages', test: () => window.supabaseManager.getChatMessages() }
+                ];
+                
+                let results = '<ul>';
+                for (const test of tests) {
+                    try {
+                        const result = await test.test();
+                        if (result.success) {
+                            results += `<li style="color: green;">✅ ${test.name}: ${result.data?.length || 0} records</li>`;
+                        } else {
+                            results += `<li style="color: red;">❌ ${test.name}: ${result.error?.message || 'Unknown error'}</li>`;
+                        }
+                    } catch (error) {
+                        results += `<li style="color: red;">❌ ${test.name}: ${error.message}</li>`;
+                    }
+                }
+                results += '</ul>';
+                
+                testDiv.innerHTML = results;
+                testDiv.parentElement.className = 'test-section success';
+                
+            } catch (error) {
+                testDiv.innerHTML = `<span style="color: red;">❌ Error: ${error.message}</span>`;
+                testDiv.parentElement.className = 'test-section error';
+            }
+        }
+
+        async function testData() {
+            const testDiv = document.getElementById('dataTest');
+            testDiv.innerHTML = 'Testing data retrieval...';
+            
+            try {
+                const result = await window.supabaseManager.getStudents();
+                if (result.success) {
+                    testDiv.innerHTML = `<span style="color: green;">✅ Found ${result.data.length} students</span>
+                        <pre>${JSON.stringify(result.data.slice(0, 2), null, 2)}</pre>`;
+                } else {
+                    testDiv.innerHTML = `<span style="color: red;">❌ Error: ${result.error?.message}</span>`;
+                }
+            } catch (error) {
+                testDiv.innerHTML = `<span style="color: red;">❌ Error: ${error.message}</span>`;
+            }
+        }
+
+        async function createSampleData() {
+            const testDiv = document.getElementById('dataTest');
+            testDiv.innerHTML = 'Creating sample data...';
+            
+            try {
+                // Create sample students
+                const sampleStudents = [
+                    {
+                        name: 'Emma Wilson',
+                        class: '3A',
+                        photo_url: 'https://via.placeholder.com/150/4F46E5/FFFFFF?text=EW',
+                        status: 'waiting',
+                        parent_contact: 'Sarah Wilson - (555) 123-4567'
+                    },
+                    {
+                        name: 'Liam Johnson',
+                        class: '2B',
+                        photo_url: 'https://via.placeholder.com/150/7C3AED/FFFFFF?text=LJ',
+                        status: 'waiting',
+                        parent_contact: 'Michael Johnson - (555) 234-5678'
+                    },
+                    {
+                        name: 'Sophia Davis',
+                        class: '4C',
+                        photo_url: 'https://via.placeholder.com/150/DC2626/FFFFFF?text=SD',
+                        status: 'waiting',
+                        parent_contact: 'Jennifer Davis - (555) 345-6789'
+                    }
+                ];
+
+                let results = '<ul>';
+                for (const student of sampleStudents) {
+                    try {
+                        const result = await window.supabaseManager.addStudent(student);
+                        if (result.success) {
+                            results += `<li style="color: green;">✅ Added ${student.name}</li>`;
+                        } else {
+                            results += `<li style="color: orange;">⚠️ ${student.name}: ${result.error?.message || 'Unknown error'}</li>`;
+                        }
+                    } catch (error) {
+                        results += `<li style="color: red;">❌ ${student.name}: ${error.message}</li>`;
+                    }
+                }
+                results += '</ul>';
+                
+                testDiv.innerHTML = results;
+                
+            } catch (error) {
+                testDiv.innerHTML = `<span style="color: red;">❌ Error: ${error.message}</span>`;
+            }
+        }
+    </script>
+</body>
+</html> 
