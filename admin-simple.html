@@ -88,6 +88,7 @@
             font-size: 3rem;
             font-weight: 700;
             margin-bottom: 40px;
+            text-align: center;
         }
 
         /* Statistics cards */
@@ -106,23 +107,67 @@
             text-align: center;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
 
         .stat-card:hover {
             transform: translateY(-5px);
         }
 
-        .stat-number {
-            font-size: 4rem;
-            font-weight: 700;
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #3b82f6, #1e40af);
+        }
+
+        .stat-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
             color: #3b82f6;
+        }
+
+        .stat-number {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: #1e40af;
             margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
 
         .stat-label {
             color: #64748b;
             font-size: 1.2rem;
             font-weight: 500;
+            margin-bottom: 10px;
+        }
+
+        .stat-sublabel {
+            color: #9ca3af;
+            font-size: 0.9rem;
+            font-style: italic;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         /* Action buttons */
@@ -171,6 +216,10 @@
             background: #0ea5e9;
         }
 
+        .action-btn.success {
+            background: #10b981;
+        }
+
         /* Students grid */
         .students-section {
             background: rgba(255, 255, 255, 0.95);
@@ -201,12 +250,39 @@
             padding: 25px;
             text-align: center;
             transition: all 0.3s ease;
+            position: relative;
         }
 
         .student-card:hover {
             border-color: #3b82f6;
             box-shadow: 0 8px 20px rgba(59, 130, 246, 0.1);
             transform: translateY(-3px);
+        }
+
+        .student-status {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .student-status.waiting {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .student-status.called {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .student-status.completed {
+            background: #d1fae5;
+            color: #065f46;
         }
 
         .student-avatar {
@@ -242,13 +318,21 @@
             color: #64748b;
             font-size: 1rem;
             font-weight: 500;
+            margin-bottom: 15px;
+        }
+
+        .student-contact {
+            color: #9ca3af;
+            font-size: 0.9rem;
             margin-bottom: 20px;
+            font-style: italic;
         }
 
         .student-actions {
             display: flex;
             gap: 10px;
             justify-content: center;
+            flex-wrap: wrap;
         }
 
         .student-btn {
@@ -411,44 +495,60 @@
             right: 20px;
             background: white;
             padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-            transform: translateX(400px);
-            transition: transform 0.3s ease;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+            display: none;
+            align-items: center;
+            gap: 15px;
             z-index: 1001;
-            max-width: 350px;
-        }
-
-        .toast.show {
-            transform: translateX(0);
-        }
-
-        .toast.success {
-            border-left: 4px solid #10b981;
-        }
-
-        .toast.error {
-            border-left: 4px solid #ef4444;
-        }
-
-        .toast.info {
+            max-width: 400px;
             border-left: 4px solid #3b82f6;
         }
 
-        .toast-content {
+        .toast.show {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 15px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast.success {
+            border-left-color: #10b981;
+        }
+
+        .toast.error {
+            border-left-color: #ef4444;
+        }
+
+        .toast.info {
+            border-left-color: #3b82f6;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-message {
+            color: #374151;
+            font-weight: 500;
         }
 
         .toast-close {
             background: none;
             border: none;
-            color: #6b7280;
+            color: #9ca3af;
             cursor: pointer;
-            padding: 5px;
-            border-radius: 5px;
+            padding: 4px;
+            border-radius: 4px;
         }
 
         .toast-close:hover {
@@ -457,52 +557,43 @@
 
         /* Responsive design */
         @media (max-width: 768px) {
+            .main-content {
+                padding: 20px;
+            }
+            
             .header {
                 padding: 15px 20px;
                 flex-direction: column;
                 gap: 15px;
-                text-align: center;
             }
-
-            .main-content {
-                padding: 20px;
-            }
-
-            .dashboard-title {
-                font-size: 2.2rem;
-            }
-
+            
             .stats-grid {
                 grid-template-columns: 1fr;
-                gap: 20px;
             }
-
-            .stat-card {
-                padding: 30px 25px;
-            }
-
-            .stat-number {
-                font-size: 3rem;
-            }
-
+            
             .action-buttons {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .action-btn {
-                width: 100%;
-                max-width: 300px;
                 justify-content: center;
             }
-
-            .students-grid {
-                grid-template-columns: 1fr;
+            
+            .dashboard-title {
+                font-size: 2rem;
             }
+        }
 
-            .modal-content {
-                padding: 30px 25px;
-            }
+        .refresh-btn {
+            background: none;
+            border: none;
+            color: #6b7280;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .refresh-btn:hover {
+            background: #f3f4f6;
+            color: #3b82f6;
         }
     </style>
 </head>
@@ -515,7 +606,7 @@
             </div>
             <div>
                 <h1 class="header-title">Kings College School</h1>
-                <p class="header-subtitle">Cascais - Student Pickup Management System</p>
+                <p class="header-subtitle">Admin Dashboard - Cascais Campus</p>
             </div>
         </div>
         <button class="logout-btn" onclick="logout()">
@@ -524,23 +615,45 @@
         </button>
     </div>
 
-    <!-- Main Content -->
     <div class="main-content">
         <h1 class="dashboard-title">Super Admin Dashboard</h1>
 
         <!-- Statistics Cards -->
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-number" id="totalStudents">6</div>
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-number" id="totalStudents">
+                    <span class="loading-spinner"></span>
+                </div>
                 <div class="stat-label">Total Students</div>
+                <div class="stat-sublabel">Unique student records</div>
+                <button class="refresh-btn" onclick="refreshStats()" title="Refresh statistics">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
             </div>
+
             <div class="stat-card">
-                <div class="stat-number" id="todayPickups">0</div>
+                <div class="stat-icon">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <div class="stat-number" id="todayPickups">
+                    <span class="loading-spinner"></span>
+                </div>
                 <div class="stat-label">Today's Pickups</div>
+                <div class="stat-sublabel">Security calls made today</div>
             </div>
+
             <div class="stat-card">
-                <div class="stat-number" id="activeUsers">7</div>
-                <div class="stat-label">Active Users</div>
+                <div class="stat-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-number" id="avgResponseTime">
+                    <span class="loading-spinner"></span>
+                </div>
+                <div class="stat-label">Avg Response Time</div>
+                <div class="stat-sublabel">Call to pickup completion</div>
             </div>
         </div>
 
@@ -552,21 +665,28 @@
                     Add Student
                 </button>
                 <button class="action-btn secondary" onclick="openModal('addParent')">
-                    <i class="fas fa-users"></i>
+                    <i class="fas fa-user-friends"></i>
                     Add Parent
                 </button>
                 <button class="action-btn info" onclick="viewPickupHistory()">
                     <i class="fas fa-history"></i>
                     Pickup History
                 </button>
+                <button class="action-btn success" onclick="refreshData()">
+                    <i class="fas fa-sync-alt"></i>
+                    Refresh Data
+                </button>
             </div>
         </div>
 
         <!-- Students Section -->
         <div class="students-section">
-            <h2 class="section-title">Students Management</h2>
+            <h2 class="section-title">
+                <i class="fas fa-graduation-cap"></i>
+                Student Management
+            </h2>
             <div class="students-grid" id="studentsGrid">
-                <!-- Students will be populated by JavaScript -->
+                <!-- Students will be loaded here via JavaScript -->
             </div>
         </div>
     </div>
@@ -578,7 +698,7 @@
                 <h3 class="modal-title">Add New Student</h3>
                 <button class="modal-close" onclick="closeModal('addStudent')">&times;</button>
             </div>
-            <form id="addStudentForm">
+            <form id="addStudentForm" enctype="multipart/form-data">
                 <div class="form-group">
                     <label class="form-label">Student Name</label>
                     <input type="text" class="form-input" id="studentName" required>
@@ -588,16 +708,22 @@
                     <input type="text" class="form-input" id="studentClass" placeholder="e.g., 2C" required>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Parent Email</label>
-                    <input type="email" class="form-input" id="parentEmail" required>
+                    <label class="form-label">Student Photo</label>
+                    <input type="file" class="form-input" id="studentPhoto" accept="image/jpeg,image/jpg,image/png,image/webp">
+                    <small style="color: #6b7280; font-size: 0.9rem; margin-top: 5px; display: block;">
+                        Optional: Upload JPG, PNG, or WebP (max 5MB)
+                    </small>
+                    <div id="photoPreview" style="margin-top: 10px; display: none;">
+                        <img id="previewImage" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid #e5e7eb;">
+                    </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Parent Contact</label>
-                    <input type="tel" class="form-input" id="parentContact">
+                    <input type="text" class="form-input" id="parentContact" placeholder="Parent Name - Phone" required>
                 </div>
                 <div class="form-actions">
                     <button type="button" class="btn-cancel" onclick="closeModal('addStudent')">Cancel</button>
-                    <button type="submit" class="btn-save">Add Student</button>
+                    <button type="submit" class="btn-save" id="submitStudentBtn">Add Student</button>
                 </div>
             </form>
         </div>
@@ -624,8 +750,8 @@
                     <input type="tel" class="form-input" id="parentPhone" required>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Password</label>
-                    <input type="password" class="form-input" id="parentPassword" required>
+                    <label class="form-label">Student IDs (comma-separated)</label>
+                    <input type="text" class="form-input" id="parentStudentIds" placeholder="1,2,3" title="Enter student IDs this parent can pick up">
                 </div>
                 <div class="form-actions">
                     <button type="button" class="btn-cancel" onclick="closeModal('addParent')">Cancel</button>
@@ -645,47 +771,192 @@
         </div>
     </div>
 
-    <!-- Load Supabase configuration -->
-    <script src="supabase-config.js"></script>
-    
     <script>
-        // Sample students data
-        const students = [
-            { id: 1, name: "Emma Johnson", class: "Class 2C", status: "waiting" },
-            { id: 2, name: "Oliver Smith", class: "Class 3B", status: "waiting" },
-            { id: 3, name: "Sophia Williams", class: "Class 1A", status: "waiting" },
-            { id: 4, name: "James Brown", class: "Class 4A", status: "waiting" },
-            { id: 5, name: "Isabella Davis", class: "Class 2A", status: "waiting" },
-            { id: 6, name: "William Wilson", class: "Class 3C", status: "waiting" }
-        ];
+        // Embedded Supabase Configuration
+        const SUPABASE_URL = 'https://hzzaauogpmlnymxguppp.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6emFhdW9ncG1sbnlteGd1cHBwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwNzU2NTAsImV4cCI6MjA2MzY1MTY1MH0.16_3QrnieC_GdBfiuaRpaw4vsXTRCgw0hXXDNqbzFQQ';
 
-        function renderStudents() {
+        let supabase = null;
+        let students = [];
+
+        // Initialize Supabase
+        function initializeSupabase() {
+            try {
+                if (typeof window.supabase !== 'undefined') {
+                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    console.log('✅ Supabase initialized successfully');
+                    return true;
+                } else {
+                    console.error('❌ Supabase library not loaded');
+                    showToast('Failed to load authentication system', 'error');
+                    return false;
+                }
+            } catch (error) {
+                console.error('Supabase initialization error:', error);
+                showToast('System initialization failed', 'error');
+                return false;
+            }
+        }
+
+        // Load statistics from Supabase
+        async function loadStatistics() {
+            try {
+                // Total Students (unique names)
+                const { data: studentsData, error: studentsError } = await supabase
+                    .from('students')
+                    .select('name');
+                
+                if (studentsError) throw studentsError;
+                
+                const uniqueStudents = new Set(studentsData.map(s => s.name.toLowerCase()));
+                document.getElementById('totalStudents').textContent = uniqueStudents.size;
+
+                // Today's Pickups (calls made today)
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                const { data: callsData, error: callsError } = await supabase
+                    .from('pickup_calls')
+                    .select('*')
+                    .gte('called_time', today.toISOString());
+                
+                if (callsError) throw callsError;
+                
+                document.getElementById('todayPickups').textContent = callsData.length;
+
+                // Average Response Time (for completed calls)
+                const { data: completedCalls, error: responseError } = await supabase
+                    .from('pickup_calls')
+                    .select('response_time_seconds')
+                    .eq('status', 'completed')
+                    .not('response_time_seconds', 'is', null);
+                
+                if (responseError) throw responseError;
+                
+                if (completedCalls.length > 0) {
+                    const avgSeconds = completedCalls.reduce((sum, call) => sum + call.response_time_seconds, 0) / completedCalls.length;
+                    const avgMinutes = Math.round(avgSeconds / 60);
+                    document.getElementById('avgResponseTime').textContent = `${avgMinutes}m`;
+                } else {
+                    document.getElementById('avgResponseTime').textContent = '—';
+                }
+
+                console.log('✅ Statistics loaded successfully');
+            } catch (error) {
+                console.error('Error loading statistics:', error);
+                showToast('Failed to load statistics', 'error');
+                
+                // Show fallback values
+                document.getElementById('totalStudents').textContent = '—';
+                document.getElementById('todayPickups').textContent = '—';
+                document.getElementById('avgResponseTime').textContent = '—';
+            }
+        }
+
+        // Load students from Supabase
+        async function loadStudents() {
+            try {
+                const { data, error } = await supabase
+                    .from('students')
+                    .select('*')
+                    .order('name');
+                
+                if (error) throw error;
+                
+                students = data;
+                renderStudents();
+                console.log('✅ Students loaded successfully');
+            } catch (error) {
+                console.error('Error loading students:', error);
+                showToast('Failed to load students', 'error');
+            }
+        }
+
+        // Render students with current status
+        async function renderStudents() {
             const studentsGrid = document.getElementById('studentsGrid');
             studentsGrid.innerHTML = '';
 
-            students.forEach(student => {
-                const studentCard = document.createElement('div');
-                studentCard.className = 'student-card';
-                studentCard.innerHTML = `
-                    <div class="student-avatar">
-                        ${student.name.charAt(0)}
-                    </div>
-                    <h3 class="student-name">${student.name}</h3>
-                    <p class="student-class">${student.class}</p>
-                    <div class="student-actions">
-                        <button class="student-btn edit" onclick="editStudent(${student.id})">
-                            <i class="fas fa-edit"></i> Edit
-                        </button>
-                        <button class="student-btn delete" onclick="deleteStudent(${student.id})">
-                            <i class="fas fa-trash"></i> Delete
-                        </button>
+            if (students.length === 0) {
+                studentsGrid.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #9ca3af;">
+                        <i class="fas fa-users" style="font-size: 3rem; margin-bottom: 20px;"></i>
+                        <p>No students found. Add some students to get started.</p>
                     </div>
                 `;
-                studentsGrid.appendChild(studentCard);
-            });
+                return;
+            }
 
-            // Update statistics
-            document.getElementById('totalStudents').textContent = students.length;
+            // Get current pickup status for students
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            try {
+                const { data: callsData } = await supabase
+                    .from('pickup_calls')
+                    .select('student_id, status')
+                    .gte('called_time', today.toISOString());
+                
+                const studentCallStatus = {};
+                callsData?.forEach(call => {
+                    studentCallStatus[call.student_id] = call.status;
+                });
+
+                students.forEach(student => {
+                    const currentStatus = studentCallStatus[student.id] || student.status || 'waiting';
+                    
+                    const studentCard = document.createElement('div');
+                    studentCard.className = 'student-card';
+                    studentCard.innerHTML = `
+                        <div class="student-status ${currentStatus}">${currentStatus}</div>
+                        <div class="student-avatar">
+                            ${student.photo_url ? 
+                                `<img src="${student.photo_url}" alt="${student.name}">` : 
+                                student.name.charAt(0)
+                            }
+                        </div>
+                        <h3 class="student-name">${student.name}</h3>
+                        <p class="student-class">${student.class}</p>
+                        <p class="student-contact">${student.parent_contact}</p>
+                        <div class="student-actions">
+                            <button class="student-btn edit" onclick="editStudent(${student.id})">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="student-btn delete" onclick="deleteStudent(${student.id})">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    `;
+                    studentsGrid.appendChild(studentCard);
+                });
+            } catch (error) {
+                console.error('Error checking pickup status:', error);
+                // Render without status if there's an error
+                students.forEach(student => {
+                    const studentCard = document.createElement('div');
+                    studentCard.className = 'student-card';
+                    studentCard.innerHTML = `
+                        <div class="student-avatar">
+                            ${student.photo_url ? 
+                                `<img src="${student.photo_url}" alt="${student.name}">` : 
+                                student.name.charAt(0)
+                            }
+                        </div>
+                        <h3 class="student-name">${student.name}</h3>
+                        <p class="student-class">${student.class}</p>
+                        <p class="student-contact">${student.parent_contact}</p>
+                        <div class="student-actions">
+                            <button class="student-btn edit" onclick="editStudent(${student.id})">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="student-btn delete" onclick="deleteStudent(${student.id})">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    `;
+                    studentsGrid.appendChild(studentCard);
+                });
+            }
         }
 
         function openModal(modalType) {
@@ -700,30 +971,219 @@
             // Reset forms
             if (modalType === 'addStudent') {
                 document.getElementById('addStudentForm').reset();
+                resetAddStudentForm(); // Reset form state for edit mode
+                resetPhotoPreview(); // Reset photo preview
             } else if (modalType === 'addParent') {
                 document.getElementById('addParentForm').reset();
+            }
+        }
+
+        // Add new functions for Supabase operations
+        async function addStudent(studentData) {
+            try {
+                const { data, error } = await supabase
+                    .from('students')
+                    .insert([studentData])
+                    .select();
+                
+                if (error) throw error;
+                
+                console.log('Student added successfully:', data[0]);
+                return data[0];
+            } catch (error) {
+                console.error('Error adding student:', error);
+                throw error;
+            }
+        }
+
+        async function addParent(parentData) {
+            try {
+                const { data, error } = await supabase
+                    .from('parents')
+                    .insert([parentData])
+                    .select();
+                
+                if (error) throw error;
+                
+                console.log('Parent added successfully:', data[0]);
+                return data[0];
+            } catch (error) {
+                console.error('Error adding parent:', error);
+                throw error;
             }
         }
 
         function editStudent(studentId) {
             const student = students.find(s => s.id === studentId);
             if (student) {
-                showToast(`Edit functionality for ${student.name} would be implemented here`, 'info');
+                // Pre-fill the form with current data
+                document.getElementById('studentName').value = student.name;
+                document.getElementById('studentClass').value = student.class;
+                document.getElementById('parentContact').value = student.parent_contact;
+                
+                // Change form action to update instead of add
+                const form = document.getElementById('addStudentForm');
+                form.onsubmit = async function(e) {
+                    e.preventDefault();
+                    await updateStudent(studentId);
+                };
+                
+                // Change modal title
+                document.querySelector('#addStudentModal .modal-title').textContent = 'Edit Student';
+                document.querySelector('#addStudentModal .btn-save').textContent = 'Update Student';
+                
+                openModal('addStudent');
             }
         }
 
-        function deleteStudent(studentId) {
+        async function updateStudent(studentId) {
+            try {
+                const studentData = {
+                    name: document.getElementById('studentName').value,
+                    class: document.getElementById('studentClass').value,
+                    parent_contact: document.getElementById('parentContact').value,
+                    updated_at: new Date().toISOString()
+                };
+
+                const { data, error } = await supabase
+                    .from('students')
+                    .update(studentData)
+                    .eq('id', studentId)
+                    .select();
+
+                if (error) throw error;
+
+                closeModal('addStudent');
+                showToast('Student updated successfully', 'success');
+                loadStudents(); // Reload the students list
+                
+                // Reset form back to add mode
+                resetAddStudentForm();
+            } catch (error) {
+                console.error('Error updating student:', error);
+                showToast('Failed to update student', 'error');
+            }
+        }
+
+        function resetAddStudentForm() {
+            const form = document.getElementById('addStudentForm');
+            form.onsubmit = handleAddStudent;
+            document.querySelector('#addStudentModal .modal-title').textContent = 'Add New Student';
+            document.querySelector('#addStudentModal .btn-save').textContent = 'Add Student';
+            resetPhotoPreview();
+        }
+
+        async function deleteStudent(studentId) {
             const student = students.find(s => s.id === studentId);
             if (student && confirm(`Are you sure you want to delete ${student.name}?`)) {
-                const index = students.findIndex(s => s.id === studentId);
-                students.splice(index, 1);
-                renderStudents();
-                showToast(`${student.name} has been deleted`, 'success');
+                try {
+                    const { error } = await supabase
+                        .from('students')
+                        .delete()
+                        .eq('id', studentId);
+
+                    if (error) throw error;
+
+                    showToast(`${student.name} has been deleted`, 'success');
+                    loadStudents(); // Reload the students list
+                    loadStatistics(); // Update statistics
+                } catch (error) {
+                    console.error('Error deleting student:', error);
+                    showToast('Failed to delete student', 'error');
+                }
             }
         }
 
-        function viewPickupHistory() {
-            showToast('Pickup history feature would be implemented here', 'info');
+        async function viewPickupHistory() {
+            try {
+                const { data, error } = await supabase
+                    .from('pickup_calls')
+                    .select(`
+                        *,
+                        students (name, class)
+                    `)
+                    .order('called_time', { ascending: false })
+                    .limit(50);
+
+                if (error) throw error;
+
+                let historyHtml = `
+                    <div style="max-height: 60vh; overflow-y: auto;">
+                        <h3>Recent Pickup History</h3>
+                        <div style="margin-top: 20px;">
+                `;
+
+                data.forEach(call => {
+                    const callTime = new Date(call.called_time).toLocaleString();
+                    const completedTime = call.completed_time ? new Date(call.completed_time).toLocaleString() : 'Not completed';
+                    const responseTime = call.response_time_seconds ? `${Math.round(call.response_time_seconds / 60)}m` : '—';
+                    
+                    historyHtml += `
+                        <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; margin-bottom: 10px;">
+                            <strong>${call.students?.name || call.student_name}</strong> (${call.students?.class || 'Unknown class'})
+                            <br>Called: ${callTime}
+                            <br>Status: <span style="color: ${call.status === 'completed' ? '#10b981' : '#f59e0b'}">${call.status}</span>
+                            <br>Response Time: ${responseTime}
+                            ${call.notes ? `<br>Notes: ${call.notes}` : ''}
+                        </div>
+                    `;
+                });
+
+                historyHtml += '</div></div>';
+
+                // Create a simple modal for history
+                const existingHistoryModal = document.getElementById('historyModal');
+                if (existingHistoryModal) {
+                    existingHistoryModal.remove();
+                }
+
+                const historyModal = document.createElement('div');
+                historyModal.id = 'historyModal';
+                historyModal.className = 'modal show';
+                historyModal.innerHTML = `
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3 class="modal-title">Pickup History</h3>
+                            <button class="modal-close" onclick="document.getElementById('historyModal').remove()">&times;</button>
+                        </div>
+                        ${historyHtml}
+                    </div>
+                `;
+                document.body.appendChild(historyModal);
+            } catch (error) {
+                console.error('Error loading pickup history:', error);
+                showToast('Failed to load pickup history', 'error');
+            }
+        }
+
+        // Refresh functions
+        async function refreshStats() {
+            const refreshBtn = document.querySelector('.refresh-btn');
+            const icon = refreshBtn.querySelector('i');
+            
+            icon.className = 'fas fa-sync-alt fa-spin';
+            
+            try {
+                await loadStatistics();
+                showToast('Statistics refreshed', 'success');
+            } catch (error) {
+                showToast('Failed to refresh statistics', 'error');
+            } finally {
+                icon.className = 'fas fa-sync-alt';
+            }
+        }
+
+        async function refreshData() {
+            try {
+                showToast('Refreshing all data...', 'info');
+                await Promise.all([
+                    loadStatistics(),
+                    loadStudents()
+                ]);
+                showToast('All data refreshed successfully', 'success');
+            } catch (error) {
+                showToast('Failed to refresh data', 'error');
+            }
         }
 
         function showToast(message, type = 'info') {
@@ -744,20 +1204,186 @@
             }
         }
 
+        // Form handler functions
+        async function handleAddStudent(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitStudentBtn');
+            const originalText = submitBtn.textContent;
+            
+            try {
+                // Show loading state
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding Student...';
+                
+                const studentName = document.getElementById('studentName').value;
+                const photoFile = document.getElementById('studentPhoto').files[0];
+                
+                // Upload photo if provided
+                let photoUrl = null;
+                if (photoFile) {
+                    showToast('Uploading photo...', 'info');
+                    photoUrl = await uploadPhoto(photoFile, studentName);
+                }
+
+                const studentData = {
+                    name: studentName,
+                    class: document.getElementById('studentClass').value,
+                    parent_contact: document.getElementById('parentContact').value,
+                    photo_url: photoUrl,
+                    status: 'waiting'
+                };
+
+                await addStudent(studentData);
+                closeModal('addStudent');
+                showToast(`${studentData.name} has been added successfully`, 'success');
+                loadStudents(); // Reload the students list
+                loadStatistics(); // Update statistics
+                
+                // Reset photo preview
+                resetPhotoPreview();
+            } catch (error) {
+                console.error('Error adding student:', error);
+                showToast('Failed to add student: ' + error.message, 'error');
+            } finally {
+                // Reset button
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        }
+
+        // Photo upload and preview functions
+        function setupPhotoPreview() {
+            const photoInput = document.getElementById('studentPhoto');
+            const previewDiv = document.getElementById('photoPreview');
+            const previewImage = document.getElementById('previewImage');
+
+            if (photoInput) {
+                photoInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        // Validate file size (5MB max)
+                        if (file.size > 5 * 1024 * 1024) {
+                            showToast('File size must be less than 5MB', 'error');
+                            photoInput.value = '';
+                            previewDiv.style.display = 'none';
+                            return;
+                        }
+
+                        // Validate file type
+                        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+                        if (!allowedTypes.includes(file.type)) {
+                            showToast('Please select a JPG, PNG, or WebP image', 'error');
+                            photoInput.value = '';
+                            previewDiv.style.display = 'none';
+                            return;
+                        }
+
+                        // Show preview
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            previewImage.src = e.target.result;
+                            previewDiv.style.display = 'block';
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        previewDiv.style.display = 'none';
+                    }
+                });
+            }
+        }
+
+        // Upload photo to Supabase Storage
+        async function uploadPhoto(file, studentName) {
+            try {
+                if (!file) return null;
+
+                // Create unique filename
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${studentName.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.${fileExt}`;
+
+                // Upload to Supabase Storage
+                const { data, error } = await supabase.storage
+                    .from('student-photos')
+                    .upload(fileName, file);
+
+                if (error) throw error;
+
+                // Get public URL
+                const { data: urlData } = supabase.storage
+                    .from('student-photos')
+                    .getPublicUrl(fileName);
+
+                console.log('✅ Photo uploaded successfully:', urlData.publicUrl);
+                return urlData.publicUrl;
+            } catch (error) {
+                console.error('Error uploading photo:', error);
+                throw error;
+            }
+        }
+
+        // Reset photo preview
+        function resetPhotoPreview() {
+            const photoInput = document.getElementById('studentPhoto');
+            const previewDiv = document.getElementById('photoPreview');
+            
+            if (photoInput) photoInput.value = '';
+            if (previewDiv) previewDiv.style.display = 'none';
+        }
+
+        // Generate placeholder photo for students without photos
+        function generatePlaceholderPhoto(studentName) {
+            const initials = studentName.split(' ').map(name => name[0]).join('');
+            const colors = ['4F46E5', '7C3AED', 'DC2626', '059669', 'DB2777', 'F59E0B', '8B5CF6', '10B981'];
+            const colorIndex = studentName.length % colors.length;
+            const color = colors[colorIndex];
+            
+            return `https://via.placeholder.com/150/${color}/FFFFFF?text=${initials}`;
+        }
+
+        async function handleAddParent(e) {
+            e.preventDefault();
+            
+            try {
+                const studentIds = document.getElementById('parentStudentIds').value
+                    .split(',')
+                    .map(id => parseInt(id.trim()))
+                    .filter(id => !isNaN(id));
+
+                const parentData = {
+                    name: document.getElementById('parentName').value,
+                    email: document.getElementById('parentEmailNew').value,
+                    phone: document.getElementById('parentPhone').value,
+                    student_ids: studentIds
+                };
+
+                await addParent(parentData);
+                closeModal('addParent');
+                showToast(`Parent ${parentData.name} has been added successfully`, 'success');
+            } catch (error) {
+                console.error('Error adding parent:', error);
+                showToast('Failed to add parent', 'error');
+            }
+        }
+
         // Initialize - ADMIN ONLY
         document.addEventListener('DOMContentLoaded', async function() {
             try {
                 console.log('Admin dashboard loading...');
                 
-                // TEMPORARILY DISABLED: Authentication check
-                // const isAuthenticated = await checkAuth('admin');
-                // if (!isAuthenticated) {
-                //     return; // Will redirect to login
-                // }
+                // Initialize Supabase
+                if (!initializeSupabase()) {
+                    return;
+                }
                 
-                console.log('⚠️ Authentication check temporarily disabled for testing');
                 console.log('Admin dashboard initializing...');
-                renderStudents();
+                
+                // Load initial data
+                await Promise.all([
+                    loadStatistics(),
+                    loadStudents()
+                ]);
+                
                 initializeEventListeners();
                 console.log('Admin dashboard loaded successfully');
             } catch (error) {
@@ -774,41 +1400,11 @@
                 const toastClose = document.getElementById('toastClose');
 
                 if (addStudentForm) {
-                    addStudentForm.addEventListener('submit', function(e) {
-                        e.preventDefault();
-                        
-                        const name = document.getElementById('studentName').value;
-                        const studentClass = document.getElementById('studentClass').value;
-                        const parentEmail = document.getElementById('parentEmail').value;
-                        const parentContact = document.getElementById('parentContact').value;
-                        
-                        // Add new student
-                        const newStudent = {
-                            id: Date.now(),
-                            name: name,
-                            class: 'Class ' + studentClass,
-                            status: 'waiting'
-                        };
-                        
-                        students.push(newStudent);
-                        renderStudents();
-                        closeModal('addStudent');
-                        showToast(`${name} has been added successfully`, 'success');
-                    });
+                    addStudentForm.addEventListener('submit', handleAddStudent);
                 }
 
                 if (addParentForm) {
-                    addParentForm.addEventListener('submit', function(e) {
-                        e.preventDefault();
-                        
-                        const name = document.getElementById('parentName').value;
-                        const email = document.getElementById('parentEmailNew').value;
-                        const phone = document.getElementById('parentPhone').value;
-                        
-                        // In a real application, this would create a parent account
-                        closeModal('addParent');
-                        showToast(`Parent ${name} has been added successfully`, 'success');
-                    });
+                    addParentForm.addEventListener('submit', handleAddParent);
                 }
 
                 if (toastClose) {
@@ -820,12 +1416,29 @@
                     });
                 }
 
+                // Setup photo preview functionality
+                setupPhotoPreview();
+
                 // Close modals when clicking outside
                 document.addEventListener('click', function(e) {
                     if (e.target.classList.contains('modal')) {
                         e.target.classList.remove('show');
                     }
                 });
+
+                // Reset form when closing modals
+                const modals = document.querySelectorAll('.modal');
+                modals.forEach(modal => {
+                    modal.addEventListener('click', function(e) {
+                        if (e.target === modal) {
+                            if (modal.id === 'addStudentModal') {
+                                resetAddStudentForm();
+                            }
+                        }
+                    });
+                });
+
+                console.log('✅ Event listeners initialized successfully');
             } catch (error) {
                 console.error('Event listener initialization failed:', error);
             }

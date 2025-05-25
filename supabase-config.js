@@ -1,8 +1,8 @@
 // Supabase Configuration for Kings College School Pickup System
 // Replace these with your actual Supabase project credentials
 
-const SUPABASE_URL = 'YOUR_SUPABASE_PROJECT_URL'; // Replace with your project URL
-const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; // Replace with your anon key
+const SUPABASE_URL = 'https://hzzaauogpmlnymxguppp.supabase.co'; // Replace with your project URL
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6emFhdW9ncG1sbnlteGd1cHBwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwNzU2NTAsImV4cCI6MjA2MzY1MTY1MH0.16_3QrnieC_GdBfiuaRpaw4vsXTRCgw0hXXDNqbzFQQ'; // Replace with your anon key
 
 // Initialize Supabase client
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);

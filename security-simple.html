@@ -56,10 +56,12 @@
         }
 
         .station-title {
-            color: #3b82f6;
+            color: #ffffff;
             font-size: 2.5rem;
             font-weight: 700;
-            margin: 20px 0 10px 0;
+            margin: 20px 0 30px 0;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
         }
 
         .logout-btn {
@@ -86,8 +88,16 @@
         /* Main content */
         .main-content {
             padding: 40px;
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
+        }
+
+        /* Dashboard grid layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            align-items: start;
         }
 
         /* Search section */
@@ -96,30 +106,31 @@
             backdrop-filter: blur(20px);
             border-radius: 20px;
             padding: 40px;
-            margin-bottom: 30px;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            height: fit-content;
         }
 
         .search-container {
             position: relative;
-            max-width: 600px;
-            margin: 0 auto;
+            width: 100%;
         }
 
         .search-input {
             width: 100%;
             padding: 20px 60px 20px 20px;
-            border: 3px solid #e5e7eb;
+            border: 3px solid #d1d5db;
             border-radius: 15px;
             font-size: 1.2rem;
             transition: all 0.3s ease;
-            background: white;
+            background: #fafafa;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
         }
 
         .search-input:focus {
             outline: none;
             border-color: #3b82f6;
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.06);
         }
 
         .search-dropdown {
@@ -128,13 +139,14 @@
             left: 0;
             right: 0;
             background: white;
-            border: 3px solid #e5e7eb;
+            border: 3px solid #d1d5db;
             border-top: none;
             border-radius: 0 0 15px 15px;
             max-height: 300px;
             overflow-y: auto;
-            z-index: 100;
+            z-index: 1000;
             display: none;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
         }
 
         .search-dropdown.show {
@@ -142,10 +154,13 @@
         }
 
         .dropdown-item {
-            padding: 15px 20px;
+            padding: 18px 20px;
             cursor: pointer;
             transition: background 0.2s ease;
             border-bottom: 1px solid #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
         .dropdown-item:hover {
@@ -166,6 +181,29 @@
             color: #64748b;
             font-size: 0.9rem;
             margin-top: 2px;
+        }
+
+        .student-contact {
+            color: #9ca3af;
+            font-size: 0.8rem;
+            margin-top: 4px;
+            font-style: italic;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         .call-btn {
@@ -199,13 +237,15 @@
             box-shadow: none;
         }
 
-        /* Pickup Queue */
+        /* Queue section */
         .queue-section {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(20px);
             border-radius: 20px;
             padding: 40px;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+            min-height: 400px;
         }
 
         .queue-title {
@@ -213,19 +253,11 @@
             font-size: 1.8rem;
             font-weight: 700;
             margin-bottom: 30px;
+            text-align: center;
             display: flex;
             align-items: center;
-            gap: 12px;
-        }
-
-        .empty-queue {
-            text-align: center;
-            color: #64748b;
-            font-size: 1.2rem;
-            padding: 60px 20px;
-            background: #fef3cd;
-            border-radius: 15px;
-            border: 2px solid #fbbf24;
+            justify-content: center;
+            gap: 10px;
         }
 
         .queue-item {
@@ -235,8 +267,8 @@
             padding: 20px;
             margin-bottom: 15px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between;
             transition: all 0.3s ease;
         }
 
@@ -255,19 +287,19 @@
             width: 50px;
             height: 50px;
             border-radius: 50%;
-            background: #3b82f6;
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
+            font-weight: 700;
             font-size: 1.2rem;
-            font-weight: 600;
         }
 
         .queue-details h4 {
             color: #1e40af;
-            font-size: 1.2rem;
-            margin-bottom: 4px;
+            margin-bottom: 5px;
+            font-size: 1.1rem;
         }
 
         .queue-details p {
@@ -280,15 +312,22 @@
             gap: 10px;
         }
 
+        .complete-btn, .cancel-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
         .complete-btn {
             background: #10b981;
             color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
         }
 
         .complete-btn:hover {
@@ -299,17 +338,19 @@
         .cancel-btn {
             background: #ef4444;
             color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
         }
 
         .cancel-btn:hover {
             background: #dc2626;
             transform: translateY(-1px);
+        }
+
+        .empty-queue {
+            text-align: center;
+            color: #9ca3af;
+            font-style: italic;
+            padding: 40px;
+            font-size: 1.1rem;
         }
 
         /* Toast notification */
@@ -319,52 +360,103 @@
             right: 20px;
             background: white;
             padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-            transform: translateX(400px);
-            transition: transform 0.3s ease;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+            display: none;
+            align-items: center;
+            gap: 15px;
             z-index: 1001;
-            max-width: 350px;
+            max-width: 400px;
+            border-left: 4px solid #3b82f6;
         }
 
         .toast.show {
-            transform: translateX(0);
+            display: flex;
+            animation: slideIn 0.3s ease;
         }
 
         .toast.success {
-            border-left: 4px solid #10b981;
+            border-left-color: #10b981;
         }
 
         .toast.error {
-            border-left: 4px solid #ef4444;
+            border-left-color: #ef4444;
         }
 
-        /* Responsive */
+        .toast.info {
+            border-left-color: #3b82f6;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-message {
+            color: #374151;
+            font-weight: 500;
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+        }
+
+        .toast-close:hover {
+            background: #f3f4f6;
+        }
+
+        /* Responsive design */
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+
         @media (max-width: 768px) {
+            .main-content {
+                padding: 20px;
+            }
+            
             .header {
                 padding: 15px 20px;
                 flex-direction: column;
                 gap: 15px;
-                text-align: center;
             }
-
-            .main-content {
-                padding: 20px;
-            }
-
-            .search-section,
-            .queue-section {
-                padding: 25px;
-            }
-
+            
             .station-title {
                 font-size: 2rem;
             }
-
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
             .queue-item {
                 flex-direction: column;
+                align-items: flex-start;
                 gap: 15px;
-                text-align: center;
+            }
+            
+            .queue-actions {
+                width: 100%;
+                justify-content: flex-end;
             }
         }
     </style>
@@ -378,7 +470,7 @@
             </div>
             <div>
                 <h1 class="header-title">Kings College School</h1>
-                <p class="header-subtitle">Cascais - Student Pickup Management System</p>
+                <p class="header-subtitle">Security Dashboard - Cascais Campus</p>
             </div>
         </div>
         <button class="logout-btn" onclick="logout()">
@@ -387,37 +479,44 @@
         </button>
     </div>
 
-    <!-- Main Content -->
     <div class="main-content">
+        <!-- Station Title -->
         <h1 class="station-title">Security Guard Station</h1>
 
-        <!-- Search Section -->
-        <div class="search-section">
-            <div class="search-container">
-                <input type="text" 
-                       class="search-input" 
-                       id="studentSearch" 
-                       placeholder="Search for student to call..."
-                       autocomplete="off">
-                <div class="search-dropdown" id="searchDropdown">
-                    <!-- Dropdown items will be populated by JavaScript -->
+        <!-- Dashboard Grid -->
+        <div class="dashboard-grid">
+            <!-- Search Section -->
+            <div class="search-section">
+                <h2 style="color: #3b82f6; font-size: 1.8rem; font-weight: 700; margin-bottom: 25px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    <i class="fas fa-search"></i>
+                    Student Search
+                </h2>
+                <div class="search-container">
+                    <input type="text" 
+                           id="studentSearch" 
+                           class="search-input" 
+                           placeholder="Search students by name, class, or parent name..."
+                           autocomplete="off">
+                    <div class="search-dropdown" id="searchDropdown">
+                        <!-- Dropdown items will be populated by JavaScript -->
+                    </div>
+                    <button class="call-btn" id="callStudentBtn" disabled>
+                        <i class="fas fa-phone"></i>
+                        Call Student
+                    </button>
                 </div>
-                <button class="call-btn" id="callStudentBtn" disabled>
-                    <i class="fas fa-phone"></i>
-                    Call Student
-                </button>
             </div>
-        </div>
 
-        <!-- Pickup Queue -->
-        <div class="queue-section">
-            <h2 class="queue-title">
-                <i class="fas fa-list"></i>
-                Pickup Queue
-            </h2>
-            <div id="pickupQueue">
-                <div class="empty-queue">
-                    No pickups in queue
+            <!-- Pickup Queue -->
+            <div class="queue-section">
+                <h2 class="queue-title">
+                    <i class="fas fa-list"></i>
+                    Pickup Queue
+                </h2>
+                <div id="pickupQueue">
+                    <div class="empty-queue">
+                        No pickups in queue
+                    </div>
                 </div>
             </div>
         </div>
@@ -427,41 +526,169 @@
     <div class="toast" id="toast">
         <div class="toast-content">
             <span class="toast-message" id="toastMessage"></span>
-            <button class="toast-close" id="toastClose">
-                <i class="fas fa-times"></i>
-            </button>
         </div>
+        <button class="toast-close" id="toastClose">
+            <i class="fas fa-times"></i>
+        </button>
     </div>
 
-    <!-- Load Supabase configuration -->
-    <script src="supabase-config.js"></script>
-    
     <script>
-        // Sample students data with availability status
-        const students = [
-            { id: 1, name: "Emma Johnson", class: "Class 2C", status: "available" },
-            { id: 2, name: "Oliver Smith", class: "Class 3B", status: "available" },
-            { id: 3, name: "Sophia Williams", class: "Class 1A", status: "available" },
-            { id: 4, name: "James Brown", class: "Class 4A", status: "available" },
-            { id: 5, name: "Isabella Davis", class: "Class 2A", status: "available" },
-            { id: 6, name: "William Wilson", class: "Class 3C", status: "available" }
-        ];
+        // Embedded Supabase Configuration
+        const SUPABASE_URL = 'https://hzzaauogpmlnymxguppp.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6emFhdW9ncG1sbnlteGd1cHBwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwNzU2NTAsImV4cCI6MjA2MzY1MTY1MH0.16_3QrnieC_GdBfiuaRpaw4vsXTRCgw0hXXDNqbzFQQ';
 
+        let supabase = null;
+        let students = [];
         let selectedStudent = null;
         let pickupQueue = [];
+
+        // Initialize Supabase
+        function initializeSupabase() {
+            try {
+                if (typeof window.supabase !== 'undefined') {
+                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    console.log('✅ Supabase initialized successfully');
+                    return true;
+                } else {
+                    console.error('❌ Supabase library not loaded');
+                    showToast('Failed to load system', 'error');
+                    return false;
+                }
+            } catch (error) {
+                console.error('Supabase initialization error:', error);
+                showToast('System initialization failed', 'error');
+                return false;
+            }
+        }
+
+        // Load students from Supabase
+        async function loadStudents() {
+            try {
+                const { data, error } = await supabase
+                    .from('students')
+                    .select('*')
+                    .order('name');
+                
+                if (error) throw error;
+                
+                students = data.map(student => ({
+                    ...student,
+                    status: 'available'
+                }));
+                
+                console.log('✅ Students loaded successfully:', students.length);
+            } catch (error) {
+                console.error('Error loading students:', error);
+                showToast('Failed to load students', 'error');
+                
+                // Fallback to sample data if Supabase fails
+                students = [
+                    { id: 1, name: "Emma Johnson", class: "Class 2C", parent_contact: "Sarah Johnson - (555) 123-4567", status: "available" },
+                    { id: 2, name: "Oliver Smith", class: "Class 3B", parent_contact: "Michael Smith - (555) 234-5678", status: "available" },
+                    { id: 3, name: "Sophia Williams", class: "Class 1A", parent_contact: "Jennifer Williams - (555) 345-6789", status: "available" }
+                ];
+            }
+        }
+
+        // Load pickup queue from Supabase
+        async function loadPickupQueue() {
+            try {
+                // Get pickup calls with student information
+                const { data, error } = await supabase
+                    .from('pickup_calls')
+                    .select(`
+                        *,
+                        students (
+                            id,
+                            name,
+                            class
+                        )
+                    `)
+                    .eq('status', 'called')
+                    .order('called_time', { ascending: true });
+                
+                if (error) throw error;
+                
+                // Convert database records to local queue format
+                pickupQueue = data.map(call => ({
+                    id: call.id,
+                    dbId: call.id,
+                    student: {
+                        id: call.student_id,
+                        name: call.student_name,
+                        class: call.students?.class || 'Unknown Class'
+                    },
+                    calledAt: new Date(call.called_time).toLocaleTimeString(),
+                    databaseRecord: call
+                }));
+                
+                console.log('✅ Pickup queue loaded successfully:', pickupQueue.length, 'items');
+                updateQueueDisplay();
+                
+            } catch (error) {
+                console.error('Error loading pickup queue:', error);
+                showToast('Failed to load pickup queue', 'error');
+            }
+        }
+
+        // Improved search function with fuzzy matching
+        function performFuzzySearch(query) {
+            const searchTerm = query.toLowerCase().trim();
+            
+            if (searchTerm.length === 0) return [];
+            
+            return students.filter(student => {
+                const studentName = student.name.toLowerCase();
+                const className = student.class.toLowerCase();
+                const parentContact = (student.parent_contact || '').toLowerCase();
+                
+                // Extract parent name from contact (everything before the dash)
+                const parentName = parentContact.split(' - ')[0] || '';
+                
+                // Check for various matching patterns
+                const nameMatches = studentName.includes(searchTerm) || 
+                                  studentName.startsWith(searchTerm) ||
+                                  studentName.split(' ').some(word => word.startsWith(searchTerm));
+                
+                const classMatches = className.includes(searchTerm);
+                
+                const parentMatches = parentName.includes(searchTerm) ||
+                                    parentName.split(' ').some(word => word.startsWith(searchTerm));
+                
+                // Match individual characters for more fuzzy search
+                const fuzzyNameMatch = searchTerm.split('').every(char => studentName.includes(char));
+                const fuzzyParentMatch = searchTerm.split('').every(char => parentName.includes(char));
+                
+                return nameMatches || classMatches || parentMatches || 
+                       (searchTerm.length >= 2 && (fuzzyNameMatch || fuzzyParentMatch));
+            }).sort((a, b) => {
+                // Prioritize exact matches first
+                const aExact = a.name.toLowerCase().startsWith(searchTerm);
+                const bExact = b.name.toLowerCase().startsWith(searchTerm);
+                
+                if (aExact && !bExact) return -1;
+                if (!aExact && bExact) return 1;
+                
+                return a.name.localeCompare(b.name);
+            });
+        }
 
         // Check authentication when page loads - SECURITY ONLY
         document.addEventListener('DOMContentLoaded', async function() {
             try {
                 console.log('Security dashboard loading...');
                 
-                // TEMPORARILY DISABLED: Authentication check
-                // const isAuthenticated = await checkAuth('security');
-                // if (!isAuthenticated) {
-                //     return; // Will redirect to login
-                // }
+                // Initialize Supabase
+                if (!initializeSupabase()) {
+                    return;
+                }
                 
-                console.log('⚠️ Authentication check temporarily disabled for testing');
+                // Load students and pickup queue from database
+                await Promise.all([
+                    loadStudents(),
+                    loadPickupQueue()
+                ]);
+                
                 console.log('Security dashboard initializing...');
                 initializeEventListeners();
                 updateCallButton();
@@ -479,6 +706,7 @@
 
             if (searchInput) {
                 searchInput.addEventListener('input', handleSearchInput);
+                searchInput.addEventListener('keydown', handleSearchKeydown);
             } else {
                 console.error('Search input not found');
             }
@@ -506,23 +734,31 @@
             });
         }
 
+        function handleSearchKeydown(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const dropdown = document.getElementById('searchDropdown');
+                const firstItem = dropdown.querySelector('.dropdown-item');
+                if (firstItem) {
+                    firstItem.click();
+                }
+            }
+        }
+
         function handleSearchInput() {
             try {
                 const searchInput = document.getElementById('studentSearch');
                 if (!searchInput) return;
 
-                const query = searchInput.value.toLowerCase().trim();
+                const query = searchInput.value.trim();
                 
                 if (query.length > 0) {
-                    const filteredStudents = students.filter(student => 
-                        student.name.toLowerCase().includes(query) || 
-                        student.class.toLowerCase().includes(query)
-                    );
+                    const filteredStudents = performFuzzySearch(query);
                     
                     if (filteredStudents.length > 0) {
                         showDropdown(filteredStudents);
                     } else {
-                        hideDropdown();
+                        showNoResults();
                     }
                 } else {
                     hideDropdown();
@@ -532,6 +768,19 @@
             } catch (error) {
                 console.error('Search input error:', error);
             }
+        }
+
+        function showNoResults() {
+            const searchDropdown = document.getElementById('searchDropdown');
+            if (!searchDropdown) return;
+
+            searchDropdown.innerHTML = `
+                <div class="dropdown-item" style="text-align: center; color: #9ca3af; cursor: default;">
+                    <i class="fas fa-search" style="margin-right: 10px;"></i>
+                    No students found matching your search
+                </div>
+            `;
+            searchDropdown.classList.add('show');
         }
 
         function showDropdown(studentList) {
@@ -550,14 +799,18 @@
                     const availability = inQueue ? 'called' : student.status;
                     const availabilityText = inQueue ? 'CALLED' : 'AVAILABLE';
                     
+                    // Extract parent name for display
+                    const parentName = student.parent_contact ? student.parent_contact.split(' - ')[0] : 'No contact';
+                    
                     item.innerHTML = `
                         <div style="display: flex; align-items: center; gap: 15px; flex: 1;">
-                            <div style="width: 40px; height: 40px; border-radius: 50%; background: #3b82f6; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 1.1rem;">
+                            <div style="width: 45px; height: 45px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 1.1rem;">
                                 ${student.name.charAt(0)}
                             </div>
                             <div style="flex: 1;">
                                 <div class="student-name">${student.name}</div>
                                 <div class="student-class">${student.class}</div>
+                                <div class="student-contact">Parent: ${parentName}</div>
                             </div>
                         </div>
                         <div style="background: ${availability === 'called' ? '#dbeafe' : '#d1fae5'}; color: ${availability === 'called' ? '#1e40af' : '#065f46'}; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">
@@ -620,7 +873,7 @@
             }
         }
 
-        function handleCallStudent() {
+        async function handleCallStudent() {
             try {
                 if (!selectedStudent) return;
 
@@ -632,11 +885,40 @@
                     return;
                 }
 
-                // Add to pickup queue
+                // Add to Supabase pickup_calls table
+                const callData = {
+                    student_id: selectedStudent.id,
+                    student_name: selectedStudent.name,
+                    called_time: new Date().toISOString(),
+                    status: 'called',
+                    security_user: 'Security Guard',
+                    notes: `Called from security station at ${new Date().toLocaleTimeString()}`
+                };
+
+                const { data, error } = await supabase
+                    .from('pickup_calls')
+                    .insert([callData])
+                    .select();
+                
+                if (error) {
+                    console.error('Database error details:', error);
+                    showToast(`Database error: ${error.message || 'Failed to record call'}`, 'error');
+                    return;
+                }
+
+                console.log('✅ Call recorded in database:', data[0]);
+
+                // Add to local pickup queue using database record
                 const queueItem = {
-                    id: Date.now(),
-                    student: selectedStudent,
-                    calledAt: new Date().toLocaleTimeString()
+                    id: data[0].id,
+                    dbId: data[0].id,
+                    student: {
+                        id: selectedStudent.id,
+                        name: selectedStudent.name,
+                        class: selectedStudent.class
+                    },
+                    calledAt: new Date().toLocaleTimeString(),
+                    databaseRecord: data[0]
                 };
                 
                 pickupQueue.push(queueItem);
@@ -697,31 +979,81 @@
             }
         }
 
-        function completePickup(queueId) {
+        async function completePickup(queueId) {
             try {
                 const index = pickupQueue.findIndex(item => item.id === queueId);
-                if (index !== -1) {
-                    const student = pickupQueue[index].student;
-                    pickupQueue.splice(index, 1);
-                    updateQueueDisplay();
-                    showToast(`${student.name} pickup completed`, 'success');
+                if (index === -1) {
+                    showToast('Pickup record not found', 'error');
+                    return;
                 }
+
+                const queueItem = pickupQueue[index];
+                const student = queueItem.student;
+                
+                // Update database record
+                const { error } = await supabase
+                    .from('pickup_calls')
+                    .update({ 
+                        status: 'completed',
+                        completed_time: new Date().toISOString()
+                    })
+                    .eq('id', queueId);
+                
+                if (error) {
+                    console.error('Database error:', error);
+                    showToast('Failed to complete pickup in database', 'error');
+                    return;
+                }
+
+                console.log('✅ Pickup completed in database');
+                
+                // Remove from local queue
+                pickupQueue.splice(index, 1);
+                updateQueueDisplay();
+                showToast(`${student.name} pickup completed`, 'success');
+                
             } catch (error) {
                 console.error('Complete pickup error:', error);
+                showToast('Error completing pickup. Please try again.', 'error');
             }
         }
 
-        function cancelPickup(queueId) {
+        async function cancelPickup(queueId) {
             try {
                 const index = pickupQueue.findIndex(item => item.id === queueId);
-                if (index !== -1) {
-                    const student = pickupQueue[index].student;
-                    pickupQueue.splice(index, 1);
-                    updateQueueDisplay();
-                    showToast(`${student.name} pickup cancelled`, 'error');
+                if (index === -1) {
+                    showToast('Pickup record not found', 'error');
+                    return;
                 }
+
+                const queueItem = pickupQueue[index];
+                const student = queueItem.student;
+                
+                // Update database record
+                const { error } = await supabase
+                    .from('pickup_calls')
+                    .update({ 
+                        status: 'cancelled',
+                        completed_time: new Date().toISOString()
+                    })
+                    .eq('id', queueId);
+                
+                if (error) {
+                    console.error('Database error:', error);
+                    showToast('Failed to cancel pickup in database', 'error');
+                    return;
+                }
+
+                console.log('✅ Pickup cancelled in database');
+                
+                // Remove from local queue
+                pickupQueue.splice(index, 1);
+                updateQueueDisplay();
+                showToast(`${student.name} pickup cancelled`, 'error');
+                
             } catch (error) {
                 console.error('Cancel pickup error:', error);
+                showToast('Error cancelling pickup. Please try again.', 'error');
             }
         }
 
@@ -745,7 +1077,7 @@
 
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
-                window.location.href = 'login.html';
+                window.location.href = 'index.html';
             }
         }
     </script>
