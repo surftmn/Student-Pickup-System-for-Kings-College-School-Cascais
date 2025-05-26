@@ -20,6 +20,40 @@
             color: #333;
         }
 
+        /* Security overlay for unauthorized access */
+        .security-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            color: white;
+            text-align: center;
+        }
+
+        .security-message {
+            background: #1e293b;
+            padding: 40px;
+            border-radius: 20px;
+            border: 2px solid #ef4444;
+            max-width: 500px;
+        }
+
+        .security-icon {
+            font-size: 4rem;
+            color: #ef4444;
+            margin-bottom: 20px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
         /* Header */
         .header {
             background: rgba(255, 255, 255, 0.95);
@@ -53,6 +87,25 @@
             color: #64748b;
             font-size: 1rem;
             margin-top: 4px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-right: 20px;
+        }
+
+        .user-badge {
+            background: #dc2626;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .logout-btn {
@@ -555,6 +608,22 @@
             background: #f3f4f6;
         }
 
+        .refresh-btn {
+            background: none;
+            border: none;
+            color: #6b7280;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .refresh-btn:hover {
+            background: #f3f4f6;
+            color: #3b82f6;
+        }
+
         /* Responsive design */
         @media (max-width: 768px) {
             .main-content {
@@ -579,114 +648,122 @@
                 font-size: 2rem;
             }
         }
-
-        .refresh-btn {
-            background: none;
-            border: none;
-            color: #6b7280;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 8px;
-            font-size: 1.2rem;
-            transition: all 0.3s ease;
-        }
-
-        .refresh-btn:hover {
-            background: #f3f4f6;
-            color: #3b82f6;
-        }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <div class="header">
-        <div class="header-left">
-            <div class="crown-logo">
-                <i class="fas fa-crown"></i>
+    <!-- Security Overlay (shown for unauthorized users) -->
+    <div class="security-overlay" id="securityOverlay">
+        <div class="security-message">
+            <div class="security-icon">
+                <i class="fas fa-shield-exclamation"></i>
             </div>
-            <div>
-                <h1 class="header-title">Kings College School</h1>
-                <p class="header-subtitle">Admin Dashboard - Cascais Campus</p>
-            </div>
+            <h2>Unauthorized Access</h2>
+            <p>This is a secure area. You need admin privileges to access this dashboard.</p>
+            <button class="logout-btn" style="margin-top: 20px;" onclick="redirectToLogin()">
+                <i class="fas fa-sign-in-alt"></i>
+                Go to Login
+            </button>
         </div>
-        <button class="logout-btn" onclick="logout()">
-            <i class="fas fa-sign-out-alt"></i>
-            Logout
-        </button>
     </div>
 
-    <div class="main-content">
-        <h1 class="dashboard-title">Super Admin Dashboard</h1>
-
-        <!-- Statistics Cards -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-users"></i>
+    <!-- Main Dashboard Content (hidden until authentication is verified) -->
+    <div id="mainDashboard" class="hidden">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <div class="crown-logo">
+                    <i class="fas fa-crown"></i>
                 </div>
-                <div class="stat-number" id="totalStudents">
-                    <span class="loading-spinner"></span>
+                <div>
+                    <h1 class="header-title">Kings College School</h1>
+                    <p class="header-subtitle">Admin Dashboard - Cascais Campus</p>
                 </div>
-                <div class="stat-label">Total Students</div>
-                <div class="stat-sublabel">Unique student records</div>
-                <button class="refresh-btn" onclick="refreshStats()" title="Refresh statistics">
-                    <i class="fas fa-sync-alt"></i>
-                </button>
             </div>
-
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-bell"></i>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div class="user-badge">
+                    <i class="fas fa-crown"></i>
+                    <span id="currentUser">Super Admin</span>
                 </div>
-                <div class="stat-number" id="todayPickups">
-                    <span class="loading-spinner"></span>
-                </div>
-                <div class="stat-label">Today's Pickups</div>
-                <div class="stat-sublabel">Security calls made today</div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-clock"></i>
-                </div>
-                <div class="stat-number" id="avgResponseTime">
-                    <span class="loading-spinner"></span>
-                </div>
-                <div class="stat-label">Avg Response Time</div>
-                <div class="stat-sublabel">Call to pickup completion</div>
-            </div>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="actions-section">
-            <div class="action-buttons">
-                <button class="action-btn primary" onclick="openModal('addStudent')">
-                    <i class="fas fa-user-plus"></i>
-                    Add Student
-                </button>
-                <button class="action-btn secondary" onclick="openModal('addParent')">
-                    <i class="fas fa-user-friends"></i>
-                    Add Parent
-                </button>
-                <button class="action-btn info" onclick="viewPickupHistory()">
-                    <i class="fas fa-history"></i>
-                    Pickup History
-                </button>
-                <button class="action-btn success" onclick="refreshData()">
-                    <i class="fas fa-sync-alt"></i>
-                    Refresh Data
+                <button class="logout-btn" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
                 </button>
             </div>
         </div>
 
-        <!-- Students Section -->
-        <div class="students-section">
-            <h2 class="section-title">
-                <i class="fas fa-graduation-cap"></i>
-                Student Management
-            </h2>
-            <div class="students-grid" id="studentsGrid">
-                <!-- Students will be loaded here via JavaScript -->
+        <div class="main-content">
+            <h1 class="dashboard-title">Super Admin Dashboard</h1>
+
+            <!-- Statistics Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-number" id="totalStudents">
+                        <span class="loading-spinner"></span>
+                    </div>
+                    <div class="stat-label">Total Students</div>
+                    <div class="stat-sublabel">Unique student records</div>
+                    <button class="refresh-btn" onclick="refreshStats()" title="Refresh statistics">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <div class="stat-number" id="todayPickups">
+                        <span class="loading-spinner"></span>
+                    </div>
+                    <div class="stat-label">Today's Pickups</div>
+                    <div class="stat-sublabel">Security calls made today</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-number" id="avgResponseTime">
+                        <span class="loading-spinner"></span>
+                    </div>
+                    <div class="stat-label">Avg Response Time</div>
+                    <div class="stat-sublabel">Call to pickup completion</div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="actions-section">
+                <div class="action-buttons">
+                    <button class="action-btn primary" onclick="openModal('addStudent')">
+                        <i class="fas fa-user-plus"></i>
+                        Add Student
+                    </button>
+                    <button class="action-btn secondary" onclick="openModal('addParent')">
+                        <i class="fas fa-user-friends"></i>
+                        Add Parent
+                    </button>
+                    <button class="action-btn info" onclick="viewPickupHistory()">
+                        <i class="fas fa-history"></i>
+                        Pickup History
+                    </button>
+                    <button class="action-btn success" onclick="refreshData()">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh Data
+                    </button>
+                </div>
+            </div>
+
+            <!-- Students Section -->
+            <div class="students-section">
+                <h2 class="section-title">
+                    <i class="fas fa-graduation-cap"></i>
+                    Student Management
+                </h2>
+                <div class="students-grid" id="studentsGrid">
+                    <!-- Students will be loaded here via JavaScript -->
+                </div>
             </div>
         </div>
     </div>
@@ -765,19 +842,85 @@
     <div class="toast" id="toast">
         <div class="toast-content">
             <span class="toast-message" id="toastMessage"></span>
-            <button class="toast-close" id="toastClose">
-                <i class="fas fa-times"></i>
-            </button>
         </div>
+        <button class="toast-close" id="toastClose">
+            <i class="fas fa-times"></i>
+        </button>
     </div>
 
     <script>
-        // Embedded Supabase Configuration
+        // Configuration
         const SUPABASE_URL = 'https://hzzaauogpmlnymxguppp.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6emFhdW9ncG1sbnlteGd1cHBwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwNzU2NTAsImV4cCI6MjA2MzY1MTY1MH0.16_3QrnieC_GdBfiuaRpaw4vsXTRCgw0hXXDNqbzFQQ';
 
         let supabase = null;
         let students = [];
+        let currentUser = null;
+
+        // Session timeout (30 minutes)
+        const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes in milliseconds
+
+        // Authentication functions
+        function checkAuthentication() {
+            const authToken = sessionStorage.getItem('school_auth_token');
+            const authTime = sessionStorage.getItem('school_auth_time');
+            const userRole = sessionStorage.getItem('school_user_role');
+            const userName = sessionStorage.getItem('school_user_name');
+            
+            console.log('Checking authentication...', { authToken, authTime, userRole, userName });
+            
+            if (!authToken || !authTime || !userRole) {
+                console.log('❌ No authentication credentials found');
+                return false;
+            }
+            
+            // Check if user has admin role
+            if (userRole !== 'admin') {
+                console.log('❌ User does not have admin role:', userRole);
+                showToast('Access denied: Admin privileges required', 'error');
+                return false;
+            }
+            
+            // Check session timeout
+            const currentTime = Date.now();
+            const loginTime = parseInt(authTime);
+            
+            if (currentTime - loginTime > SESSION_TIMEOUT) {
+                console.log('❌ Session expired');
+                clearAuthentication();
+                showToast('Session expired. Please login again.', 'error');
+                return false;
+            }
+            
+            // Valid authentication
+            currentUser = {
+                name: userName,
+                role: userRole,
+                token: authToken
+            };
+            
+            console.log('✅ Authentication valid for user:', currentUser);
+            return true;
+        }
+
+        function clearAuthentication() {
+            sessionStorage.removeItem('school_auth_token');
+            sessionStorage.removeItem('school_auth_time');
+            sessionStorage.removeItem('school_user_role');
+            sessionStorage.removeItem('school_user_name');
+            currentUser = null;
+        }
+
+        function redirectToLogin() {
+            clearAuthentication();
+            window.location.href = 'login.html';
+        }
+
+        function updateSessionTime() {
+            if (currentUser) {
+                sessionStorage.setItem('school_auth_time', Date.now().toString());
+            }
+        }
 
         // Initialize Supabase
         function initializeSupabase() {
@@ -1059,6 +1202,7 @@
                 
                 // Reset form back to add mode
                 resetAddStudentForm();
+                updateSessionTime(); // Update session on activity
             } catch (error) {
                 console.error('Error updating student:', error);
                 showToast('Failed to update student', 'error');
@@ -1087,6 +1231,7 @@
                     showToast(`${student.name} has been deleted`, 'success');
                     loadStudents(); // Reload the students list
                     loadStatistics(); // Update statistics
+                    updateSessionTime(); // Update session on activity
                 } catch (error) {
                     console.error('Error deleting student:', error);
                     showToast('Failed to delete student', 'error');
@@ -1150,6 +1295,7 @@
                     </div>
                 `;
                 document.body.appendChild(historyModal);
+                updateSessionTime(); // Update session on activity
             } catch (error) {
                 console.error('Error loading pickup history:', error);
                 showToast('Failed to load pickup history', 'error');
@@ -1166,6 +1312,7 @@
             try {
                 await loadStatistics();
                 showToast('Statistics refreshed', 'success');
+                updateSessionTime(); // Update session on activity
             } catch (error) {
                 showToast('Failed to refresh statistics', 'error');
             } finally {
@@ -1181,6 +1328,7 @@
                     loadStudents()
                 ]);
                 showToast('All data refreshed successfully', 'success');
+                updateSessionTime(); // Update session on activity
             } catch (error) {
                 showToast('Failed to refresh data', 'error');
             }
@@ -1200,7 +1348,11 @@
 
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
-                window.location.href = 'login.html';
+                clearAuthentication();
+                showToast('Logged out successfully', 'info');
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 1000);
             }
         }
 
@@ -1239,6 +1391,7 @@
                 showToast(`${studentData.name} has been added successfully`, 'success');
                 loadStudents(); // Reload the students list
                 loadStatistics(); // Update statistics
+                updateSessionTime(); // Update session on activity
                 
                 // Reset photo preview
                 resetPhotoPreview();
@@ -1360,6 +1513,7 @@
                 await addParent(parentData);
                 closeModal('addParent');
                 showToast(`Parent ${parentData.name} has been added successfully`, 'success');
+                updateSessionTime(); // Update session on activity
             } catch (error) {
                 console.error('Error adding parent:', error);
                 showToast('Failed to add parent', 'error');
@@ -1368,9 +1522,27 @@
 
         // Initialize - ADMIN ONLY
         document.addEventListener('DOMContentLoaded', async function() {
+            console.log('Admin dashboard loading...');
+            
+            // First, check authentication
+            if (!checkAuthentication()) {
+                console.log('❌ Authentication failed - showing security overlay');
+                document.getElementById('securityOverlay').classList.remove('hidden');
+                document.getElementById('mainDashboard').classList.add('hidden');
+                return;
+            }
+            
+            // Hide security overlay and show dashboard
+            document.getElementById('securityOverlay').classList.add('hidden');
+            document.getElementById('mainDashboard').classList.remove('hidden');
+            
+            // Update user display
+            const currentUserElement = document.getElementById('currentUser');
+            if (currentUserElement && currentUser) {
+                currentUserElement.textContent = currentUser.name;
+            }
+            
             try {
-                console.log('Admin dashboard loading...');
-                
                 // Initialize Supabase
                 if (!initializeSupabase()) {
                     return;
@@ -1385,7 +1557,25 @@
                 ]);
                 
                 initializeEventListeners();
-                console.log('Admin dashboard loaded successfully');
+                console.log('✅ Admin dashboard loaded successfully');
+                
+                // Periodic refresh and session activity
+                setInterval(() => {
+                    updateSessionTime();
+                    loadStatistics(); // Refresh stats periodically
+                }, 60000); // Refresh every 60 seconds
+                
+                // Update session time on user activity
+                document.addEventListener('click', updateSessionTime);
+                document.addEventListener('keypress', updateSessionTime);
+                
+                // Periodic session check
+                setInterval(() => {
+                    if (!checkAuthentication()) {
+                        redirectToLogin();
+                    }
+                }, 5 * 60 * 1000); // Check every 5 minutes
+                
             } catch (error) {
                 console.error('Admin dashboard initialization failed:', error);
                 showToast('System initialization failed. Please refresh the page.', 'error');
@@ -1445,4 +1635,4 @@
         }
     </script>
 </body>
-</html> 
+</html>

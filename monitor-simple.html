@@ -21,6 +21,40 @@
             color: #333;
         }
 
+        /* Security overlay for unauthorized access */
+        .security-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            color: white;
+            text-align: center;
+        }
+
+        .security-message {
+            background: #1e293b;
+            padding: 40px;
+            border-radius: 20px;
+            border: 2px solid #ef4444;
+            max-width: 500px;
+        }
+
+        .security-icon {
+            font-size: 4rem;
+            color: #ef4444;
+            margin-bottom: 20px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
         /* Header */
         .header {
             background: rgba(255, 255, 255, 0.95);
@@ -54,6 +88,25 @@
             color: #64748b;
             font-size: 1rem;
             margin-top: 4px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-right: 20px;
+        }
+
+        .user-badge {
+            background: #8b5cf6;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .station-title {
@@ -116,6 +169,10 @@
             font-size: 1.8rem;
             font-weight: 700;
             margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
 
         .pickup-table {
@@ -182,7 +239,7 @@
 
         .time-counter {
             font-weight: 600;
-            color: #ef4444;
+            color: #64748b;
         }
 
         .time-counter.warning {
@@ -254,87 +311,152 @@
 
         /* Toast Notification */
         .toast {
-            visibility: hidden;
-            min-width: 250px;
-            background-color: #333;
-            color: #fff;
-            text-align: center;
-            border-radius: 8px;
-            padding: 16px;
             position: fixed;
-            z-index: 1;
-            left: 50%;
-            bottom: 30px;
-            transform: translateX(-50%);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-            opacity: 0;
-            transition: opacity 0.3s, visibility 0.3s;
-            display: flex;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+            display: none;
             align-items: center;
-            justify-content: space-between;
+            gap: 15px;
+            z-index: 1001;
+            max-width: 400px;
+            border-left: 4px solid #3b82f6;
         }
 
         .toast.show {
-            visibility: visible;
-            opacity: 1;
+            display: flex;
         }
 
         .toast.success {
-            background-color: #28a745;
+            border-left-color: #10b981;
         }
 
         .toast.error {
-            background-color: #dc3545;
+            border-left-color: #ef4444;
         }
 
         .toast.info {
-            background-color: #17a2b8;
+            border-left-color: #3b82f6;
+        }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-message {
+            color: #374151;
+            font-weight: 500;
         }
 
         .toast-close {
             background: none;
             border: none;
-            color: white;
-            font-size: 1.2rem;
+            color: #9ca3af;
             cursor: pointer;
-            margin-left: 10px;
+            padding: 4px;
+            border-radius: 4px;
+        }
+
+        .toast-close:hover {
+            background: #f3f4f6;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 20px;
+            }
+            
+            .header {
+                padding: 15px 20px;
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .station-title {
+                font-size: 2rem;
+            }
+            
+            .pickup-table {
+                font-size: 0.9rem;
+            }
+            
+            .pickup-table th, .pickup-table td {
+                padding: 8px;
+            }
+            
+            .student-avatar {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="header-left">
-            <i class="fas fa-crown crown-logo"></i>
-            <div>
-                <div class="header-title">Kings College School</div>
-                <div class="header-subtitle">Student Pickup System</div>
+    <!-- Security Overlay (shown for unauthorized users) -->
+    <div class="security-overlay" id="securityOverlay">
+        <div class="security-message">
+            <div class="security-icon">
+                <i class="fas fa-shield-exclamation"></i>
             </div>
+            <h2>Unauthorized Access</h2>
+            <p>This is a secure area. You need to login first to access this monitor dashboard.</p>
+            <button class="logout-btn" style="margin-top: 20px;" onclick="redirectToLogin()">
+                <i class="fas fa-sign-in-alt"></i>
+                Go to Login
+            </button>
         </div>
-        <button class="logout-btn" onclick="logout()">
-            <i class="fas fa-sign-out-alt"></i> Logout
-        </button>
     </div>
 
-    <div class="main-content">
-        <h1 class="station-title">Monitor Station</h1>
+    <!-- Main Dashboard Content (hidden until authentication is verified) -->
+    <div id="mainDashboard" class="hidden">
+        <div class="header">
+            <div class="header-left">
+                <i class="fas fa-crown crown-logo"></i>
+                <div>
+                    <div class="header-title">Kings College School</div>
+                    <div class="header-subtitle">Monitor Dashboard - Cascais Campus</div>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div class="user-badge">
+                    <i class="fas fa-desktop"></i>
+                    <span id="currentUser">Monitor Staff</span>
+                </div>
+                <button class="logout-btn" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
 
-        <div class="monitor-section">
-            <h2>Students Called for Pickup</h2>
-            <table class="pickup-table">
-                <thead>
-                    <tr>
-                        <th>Student</th>
-                        <th>Class</th>
-                        <th>Called At</th>
-                        <th>Time Elapsed</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="pickupTableBody">
-                    <!-- Students will be populated here -->
-                </tbody>
-            </table>
-            <p id="noStudentsMessage" style="text-align: center; margin-top: 20px; color: #666; display: none;">No students have been called for pickup yet.</p>
+        <div class="main-content">
+            <h1 class="station-title">Monitor Station</h1>
+
+            <div class="monitor-section">
+                <h2>
+                    <i class="fas fa-list-check"></i>
+                    Students Called for Pickup
+                </h2>
+                <table class="pickup-table">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Class</th>
+                            <th>Called At</th>
+                            <th>Time Elapsed</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pickupTableBody">
+                        <!-- Students will be populated here -->
+                    </tbody>
+                </table>
+                <p id="noStudentsMessage" style="text-align: center; margin-top: 20px; color: #666; display: none;">No students have been called for pickup yet.</p>
+            </div>
         </div>
     </div>
 
@@ -342,19 +464,104 @@
     <div class="toast" id="toast">
         <div class="toast-content">
             <span class="toast-message" id="toastMessage"></span>
-            <button class="toast-close" id="toastClose">
-                <i class="fas fa-times"></i>
-            </button>
         </div>
+        <button class="toast-close" id="toastClose">
+            <i class="fas fa-times"></i>
+        </button>
     </div>
 
     <script>
-        // Supabase Configuration
+        // Configuration
         const SUPABASE_URL = 'https://hzzaauogpmlnymxguppp.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6emFhdW9ncG1sbnlteGd1cHBwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwNzU2NTAsImV4cCI6MjA2MzY1MTY1MH0.16_3QrnieC_GdBfiuaRpaw4vsXTRCgw0hXXDNqbzFQQ';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        let monitoringTasks = []; // This will hold the fetched pickup calls
+        let supabase = null;
+        let monitoringTasks = [];
+        let currentUser = null;
+
+        // Session timeout (30 minutes)
+        const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes in milliseconds
+
+        // Authentication functions
+        function checkAuthentication() {
+            const authToken = sessionStorage.getItem('school_auth_token');
+            const authTime = sessionStorage.getItem('school_auth_time');
+            const userRole = sessionStorage.getItem('school_user_role');
+            const userName = sessionStorage.getItem('school_user_name');
+            
+            console.log('Checking authentication...', { authToken, authTime, userRole, userName });
+            
+            if (!authToken || !authTime || !userRole) {
+                console.log('❌ No authentication credentials found');
+                return false;
+            }
+            
+            // Check if user has monitor role
+            if (userRole !== 'monitor') {
+                console.log('❌ User does not have monitor role:', userRole);
+                showToast('Access denied: Monitor role required', 'error');
+                return false;
+            }
+            
+            // Check session timeout
+            const currentTime = Date.now();
+            const loginTime = parseInt(authTime);
+            
+            if (currentTime - loginTime > SESSION_TIMEOUT) {
+                console.log('❌ Session expired');
+                clearAuthentication();
+                showToast('Session expired. Please login again.', 'error');
+                return false;
+            }
+            
+            // Valid authentication
+            currentUser = {
+                name: userName,
+                role: userRole,
+                token: authToken
+            };
+            
+            console.log('✅ Authentication valid for user:', currentUser);
+            return true;
+        }
+
+        function clearAuthentication() {
+            sessionStorage.removeItem('school_auth_token');
+            sessionStorage.removeItem('school_auth_time');
+            sessionStorage.removeItem('school_user_role');
+            sessionStorage.removeItem('school_user_name');
+            currentUser = null;
+        }
+
+        function redirectToLogin() {
+            clearAuthentication();
+            window.location.href = 'login.html';
+        }
+
+        function updateSessionTime() {
+            if (currentUser) {
+                sessionStorage.setItem('school_auth_time', Date.now().toString());
+            }
+        }
+
+        // Initialize Supabase
+        function initializeSupabase() {
+            try {
+                if (typeof window.supabase !== 'undefined') {
+                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    console.log('✅ Supabase initialized successfully');
+                    return true;
+                } else {
+                    console.error('❌ Supabase library not loaded');
+                    showToast('Failed to load system', 'error');
+                    return false;
+                }
+            } catch (error) {
+                console.error('Supabase initialization error:', error);
+                showToast('System initialization failed', 'error');
+                return false;
+            }
+        }
 
         // DOM elements
         const pickupTableBody = document.getElementById('pickupTableBody');
@@ -362,11 +569,53 @@
 
         document.addEventListener('DOMContentLoaded', async function() {
             console.log('Monitor dashboard loading...');
+            
+            // First, check authentication
+            if (!checkAuthentication()) {
+                console.log('❌ Authentication failed - showing security overlay');
+                document.getElementById('securityOverlay').classList.remove('hidden');
+                document.getElementById('mainDashboard').classList.add('hidden');
+                return;
+            }
+            
+            // Hide security overlay and show dashboard
+            document.getElementById('securityOverlay').classList.add('hidden');
+            document.getElementById('mainDashboard').classList.remove('hidden');
+            
+            // Update user display
+            const currentUserElement = document.getElementById('currentUser');
+            if (currentUserElement && currentUser) {
+                currentUserElement.textContent = currentUser.name;
+            }
+            
             try {
+                // Initialize Supabase
+                if (!initializeSupabase()) {
+                    return;
+                }
+                
                 await fetchPickupCalls();
                 setupRealtimeUpdates();
                 initializeEventListeners();
-                console.log('Monitor dashboard loaded successfully');
+                console.log('✅ Monitor dashboard loaded successfully');
+                
+                // Periodic refresh and session activity
+                setInterval(() => {
+                    updateSessionTime();
+                    fetchPickupCalls();
+                }, 60000); // Refresh every 60 seconds
+                
+                // Update session time on user activity
+                document.addEventListener('click', updateSessionTime);
+                document.addEventListener('keypress', updateSessionTime);
+                
+                // Periodic session check
+                setInterval(() => {
+                    if (!checkAuthentication()) {
+                        redirectToLogin();
+                    }
+                }, 5 * 60 * 1000); // Check every 5 minutes
+                
             } catch (error) {
                 console.error('Monitor dashboard initialization failed:', error);
                 showToast('System initialization failed. Please refresh the page.', 'error');
@@ -376,50 +625,46 @@
         async function fetchPickupCalls() {
             console.log('Fetching pickup calls from Supabase...');
             try {
-                // First, let's see what pickup calls exist with any status
-                const { data: allCalls, error: allError } = await supabase
-                    .from('pickup_calls')
-                    .select(`
-                        id,
-                        status,
-                        created_at,
-                        student:student_id (*)
-                    `)
-                    .order('created_at', { ascending: false });
-
-                if (allError) {
-                    console.error('Error fetching all pickup calls:', allError);
-                }
-
-                // Now fetch both "called" and "on the way" statuses
+                // Fetch both "called" and "on the way" statuses
                 const { data: pickupCalls, error } = await supabase
                     .from('pickup_calls')
                     .select(`
                         id,
                         status,
+                        student_id,
+                        student_name,
+                        called_time,
                         created_at,
-                        student:student_id (*)
+                        students (
+                            id,
+                            name,
+                            class,
+                            photo_url
+                        )
                     `)
                     .in('status', ['called', 'on the way'])
-                    .order('created_at', { ascending: false });
+                    .order('called_time', { ascending: true });
 
                 if (error) {
                     console.error('Error in pickup_calls query:', error);
                     throw error;
                 }
 
+                console.log('Raw pickup calls data:', pickupCalls);
+
                 monitoringTasks = pickupCalls.map(call => ({
                     id: call.id,
                     status: call.status,
                     student: {
-                        name: `${call.student.first_name || call.student.firstName || call.student.name || 'Unknown'} ${call.student.last_name || call.student.lastName || ''}`,
-                        class: call.student.class || call.student.className || call.student.grade || 'Unknown',
-                        photo: call.student.photo || call.student.photo_url || null
+                        name: call.student_name || call.students?.name || 'Unknown Name',
+                        class: call.students?.class || 'Unknown Class',
+                        photo: call.students?.photo_url || null
                     },
-                    calledAt: new Date(call.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                    calledTimestamp: new Date(call.created_at)
+                    calledAt: new Date(call.called_time || call.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    calledTimestamp: new Date(call.called_time || call.created_at)
                 }));
 
+                console.log('✅ Pickup calls loaded successfully:', monitoringTasks.length, 'items');
                 updatePickupTable();
             } catch (error) {
                 console.error('Error in fetchPickupCalls:', error);
@@ -533,8 +778,13 @@
         }
 
         function startTimeCounters() {
+            // Clear existing interval
+            if (window.timeCounterInterval) {
+                clearInterval(window.timeCounterInterval);
+            }
+            
             // Update time counters every second
-            setInterval(() => {
+            window.timeCounterInterval = setInterval(() => {
                 const counters = document.querySelectorAll('.time-counter');
                 counters.forEach(counter => {
                     const timestamp = parseInt(counter.dataset.timestamp);
@@ -572,6 +822,7 @@
                 
                 // Force refresh the entire page data to ensure visual changes apply
                 await fetchPickupCalls();
+                updateSessionTime(); // Update session on activity
                 
             } catch (error) {
                 console.error('Error in markOnTheWay:', error);
@@ -593,7 +844,11 @@
 
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
-                window.location.href = 'login.html';
+                clearAuthentication();
+                showToast('Logged out successfully', 'info');
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 1000);
             }
         }
 

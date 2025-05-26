@@ -298,9 +298,6 @@
             <div class="message error" id="errorMessage"></div>
             <div class="message success" id="successMessage"></div>
 
-            <!-- Debug Panel (temporary) -->
-            <!-- DEBUG PANEL REMOVED FOR PRODUCTION -->
-
             <!-- Role Selection Tabs -->
             <div class="role-tabs">
                 <button class="role-tab active" data-role="parent" id="parentTab">
@@ -354,15 +351,14 @@
         let supabase = null;
         let selectedRole = 'parent'; // Default selected role
 
-        // Debug function for visual feedback
-        function addDebugLog(message) {
-            console.log(message);
-            // DEBUG PANEL REMOVED FOR PRODUCTION
-        }
-
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', function() {
             try {
+                console.log('Page loaded, checking for existing session...');
+                
+                // Check if user is already logged in
+                checkExistingSession();
+                
                 console.log('Initializing Supabase...');
                 
                 // Wait for Supabase library to load
@@ -376,11 +372,44 @@
                 }
 
                 initializeEventListeners();
+                console.log('Event listeners initialized');
+                
             } catch (error) {
                 console.error('Initialization error:', error);
                 showError('System initialization failed');
             }
         });
+
+        function checkExistingSession() {
+            const authToken = sessionStorage.getItem('school_auth_token');
+            const authTime = sessionStorage.getItem('school_auth_time');
+            const userRole = sessionStorage.getItem('school_user_role');
+            
+            if (authToken && authTime && userRole) {
+                const currentTime = Date.now();
+                const loginTime = parseInt(authTime);
+                const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes
+                
+                if (currentTime - loginTime < SESSION_TIMEOUT) {
+                    console.log(`✅ Found valid session for role: ${userRole}`);
+                    const targetPage = getDashboardPage(userRole);
+                    console.log(`🎯 Redirecting to: ${targetPage}`);
+                    window.location.href = targetPage;
+                    return true;
+                } else {
+                    console.log('⏰ Session expired, clearing old session');
+                    clearSession();
+                }
+            }
+            return false;
+        }
+
+        function clearSession() {
+            sessionStorage.removeItem('school_auth_token');
+            sessionStorage.removeItem('school_auth_time');
+            sessionStorage.removeItem('school_user_role');
+            sessionStorage.removeItem('school_user_name');
+        }
 
         function initializeEventListeners() {
             const loginForm = document.getElementById('loginForm');
@@ -407,7 +436,7 @@
 
         function selectRole(role) {
             selectedRole = role;
-            console.log('Selected role:', selectedRole);
+            console.log(`Selected role: ${selectedRole}`);
             
             // Update active tab
             document.querySelectorAll('.role-tab').forEach(tab => {
@@ -450,58 +479,86 @@
 
             setLoading(true);
             hideMessages();
+            console.log(`🔐 Attempting login for: ${email} as ${selectedRole}`);
 
             try {
-                console.log(`Attempting login for: ${email} as ${selectedRole}`);
-                
+                // Step 1: Authenticate with Supabase
                 const { data, error } = await supabase.auth.signInWithPassword({
                     email: email,
                     password: password
                 });
 
                 if (error) {
-                    console.error('Login error:', error);
+                    console.error(`❌ Supabase auth error: ${error.message}`);
                     showError(`Login failed: ${error.message}`);
                     return;
                 }
 
-                if (data.user) {
-                    // Debug: Let's see what user data we get
-                    console.log('Full user data:', data.user);
-                    console.log('User metadata:', data.user.user_metadata);
-                    console.log('App metadata:', data.user.app_metadata);
-                    
-                    const userRole = data.user.user_metadata?.role || data.user.app_metadata?.role || getRoleFromEmail(email);
-                    console.log(`✅ Login successful for ${email}, user role: ${userRole}, selected role: ${selectedRole}`);
-                    
-                    // Check if user role matches selected role
-                    if (userRole !== selectedRole) {
-                        showError(`This account is not authorized for ${selectedRole} access. Please select the correct role or use appropriate credentials.`);
-                        return;
-                    }
-                    
-                    // Get target dashboard page
-                    const targetPage = getDashboardPage(selectedRole);
-                    console.log(`🎯 Redirecting to: ${targetPage}`);
-                    
-                    // Show success message briefly before redirect
-                    showSuccess(`Welcome! Taking you to the ${selectedRole} dashboard...`);
-                    
-                    // Automatic redirect after 1.5 seconds
-                    setTimeout(() => {
-                        window.location.href = targetPage;
-                    }, 1500);
-                    
-                } else {
+                if (!data.user) {
+                    console.error('❌ No user data returned from Supabase');
                     showError('Login failed: No user data returned');
+                    return;
                 }
 
+                console.log('✅ Supabase authentication successful');
+                console.log(`User ID: ${data.user.id}`);
+                console.log(`User email: ${data.user.email}`);
+
+                // Step 2: Get user role from metadata or fallback
+                const userRole = data.user.user_metadata?.role || 
+                               data.user.app_metadata?.role || 
+                               getRoleFromEmail(email);
+                
+                console.log(`User role determined: ${userRole}`);
+
+                // Step 3: Check if user role matches selected role
+                if (userRole !== selectedRole) {
+                    console.error(`❌ Role mismatch: user has '${userRole}', selected '${selectedRole}'`);
+                    showError(`This account is not authorized for ${selectedRole} access. Please select the correct role or use appropriate credentials.`);
+                    return;
+                }
+
+                // Step 4: Create session token and set session storage
+                const sessionToken = generateSessionToken();
+                const currentTime = Date.now().toString();
+                const userName = data.user.user_metadata?.name || 
+                               data.user.user_metadata?.full_name || 
+                               getUserNameFromEmail(email);
+
+                // Set session storage for the dashboard to use
+                sessionStorage.setItem('school_auth_token', sessionToken);
+                sessionStorage.setItem('school_auth_time', currentTime);
+                sessionStorage.setItem('school_user_role', userRole);
+                sessionStorage.setItem('school_user_name', userName);
+
+                console.log('✅ Session storage set successfully');
+                console.log(`Role: ${userRole}`);
+                console.log(`Name: ${userName}`);
+
+                // Step 5: Get target dashboard page
+                const targetPage = getDashboardPage(selectedRole);
+                console.log(`🎯 Target page: ${targetPage}`);
+                
+                // Step 6: Show success message and redirect
+                showSuccess(`Welcome ${userName}! Taking you to the ${selectedRole} dashboard...`);
+                
+                // Automatic redirect after 1.5 seconds
+                setTimeout(() => {
+                    console.log(`🚀 Redirecting to ${targetPage}`);
+                    window.location.href = targetPage;
+                }, 1500);
+
             } catch (error) {
-                console.error('Login exception:', error);
+                console.error(`❌ Login exception: ${error.message}`);
                 showError(`Network error: ${error.message}`);
             } finally {
                 setLoading(false);
             }
+        }
+
+        // Generate a simple session token
+        function generateSessionToken() {
+            return 'token_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         }
 
         // Fallback function to determine role from email if metadata is missing
@@ -511,10 +568,26 @@
                 'admin@gmail.com': 'admin',
                 'security@gmail.com': 'security',
                 'monitor@gmail.com': 'monitor',
-                'parent@gmail.com': 'parent'
+                'parent@gmail.com': 'parent',
+                // Add more mappings as needed
             };
             
-            return emailToRole[email] || 'parent'; // default to parent if unknown
+            const role = emailToRole[email] || 'parent'; // default to parent if unknown
+            console.log(`Email role mapping: ${email} -> ${role}`);
+            return role;
+        }
+
+        // Get user name from email or metadata
+        function getUserNameFromEmail(email) {
+            const emailToName = {
+                'test@test.com': 'Test Admin',
+                'admin@gmail.com': 'Administrator',
+                'security@gmail.com': 'Security Guard',
+                'monitor@gmail.com': 'Monitor Staff',
+                'parent@gmail.com': 'Parent User',
+            };
+            
+            return emailToName[email] || email.split('@')[0]; // fallback to email prefix
         }
 
         // Helper function to get dashboard page for each role

@@ -20,6 +20,40 @@
             color: #333;
         }
 
+        /* Security overlay for unauthorized access */
+        .security-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            color: white;
+            text-align: center;
+        }
+
+        .security-message {
+            background: #1e293b;
+            padding: 40px;
+            border-radius: 20px;
+            border: 2px solid #ef4444;
+            max-width: 500px;
+        }
+
+        .security-icon {
+            font-size: 4rem;
+            color: #ef4444;
+            margin-bottom: 20px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
         /* Header */
         .header {
             background: rgba(255, 255, 255, 0.95);
@@ -53,6 +87,25 @@
             color: #64748b;
             font-size: 1rem;
             margin-top: 4px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-right: 20px;
+        }
+
+        .user-badge {
+            background: #10b981;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .station-title {
@@ -240,7 +293,7 @@
         /* Queue section */
         .queue-section {
             position: relative;
-              z-index: 1;
+            z-index: 1;
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(20px);
             border-radius: 20px;
@@ -249,15 +302,16 @@
             height: fit-content;
             min-height: 400px;
         }
-        .search-section {
-  position: relative;
-  z-index: 2;
-}
 
-.queue-section {
-  position: relative;
-  z-index: 1;
-}
+        .search-section {
+            position: relative;
+            z-index: 2;
+        }
+
+        .queue-section {
+            position: relative;
+            z-index: 1;
+        }
 
         .queue-title {
             color: #3b82f6;
@@ -430,6 +484,25 @@
             background: #f3f4f6;
         }
 
+        /* Time counter styles */
+        .time-counter {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        .time-normal {
+            color: #64748b;
+        }
+
+        .time-warning {
+            color: #f59e0b;
+        }
+
+        .time-urgent {
+            color: #ef4444;
+        }
+
         /* Responsive design */
         @media (max-width: 1024px) {
             .dashboard-grid {
@@ -469,82 +542,87 @@
                 justify-content: flex-end;
             }
         }
-
-        /* Time counter styles */
-        .time-counter {
-            font-size: 0.9rem;
-            font-weight: 600;
-            margin-top: 2px;
-        }
-
-        .time-normal {
-            color: #64748b;
-        }
-
-        .time-warning {
-            color: #f59e0b;
-        }
-
-        .time-urgent {
-            color: #ef4444;
-        }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <div class="header">
-        <div class="header-left">
-            <div class="crown-logo">
-                <i class="fas fa-crown"></i>
+    <!-- Security Overlay (shown for unauthorized users) -->
+    <div class="security-overlay" id="securityOverlay">
+        <div class="security-message">
+            <div class="security-icon">
+                <i class="fas fa-shield-exclamation"></i>
             </div>
-            <div>
-                <h1 class="header-title">Kings College School</h1>
-                <p class="header-subtitle">Security Dashboard - Cascais Campus</p>
-            </div>
+            <h2>Unauthorized Access</h2>
+            <p>This is a secure area. You need to login first to access this dashboard.</p>
+            <button class="logout-btn" style="margin-top: 20px;" onclick="redirectToLogin()">
+                <i class="fas fa-sign-in-alt"></i>
+                Go to Login
+            </button>
         </div>
-        <button class="logout-btn" onclick="logout()">
-            <i class="fas fa-sign-out-alt"></i>
-            Logout
-        </button>
     </div>
 
-    <div class="main-content">
-        <!-- Station Title -->
-        <h1 class="station-title">Security Guard Station</h1>
-
-        <!-- Dashboard Grid -->
-        <div class="dashboard-grid">
-            <!-- Search Section -->
-            <div class="search-section">
-                <h2 style="color: #3b82f6; font-size: 1.8rem; font-weight: 700; margin-bottom: 25px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px;">
-                    <i class="fas fa-search"></i>
-                    Student Search
-                </h2>
-                <div class="search-container">
-                    <input type="text" 
-                           id="studentSearch" 
-                           class="search-input" 
-                           placeholder="Search students by name, class, or parent name..."
-                           autocomplete="off">
-                    <div class="search-dropdown" id="searchDropdown">
-                        <!-- Dropdown items will be populated by JavaScript -->
-                    </div>
-                    <button class="call-btn" id="callStudentBtn" disabled>
-                        <i class="fas fa-phone"></i>
-                        Call Student
-                    </button>
+    <!-- Main Dashboard Content (hidden until authentication is verified) -->
+    <div id="mainDashboard" class="hidden">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <div class="crown-logo">
+                    <i class="fas fa-crown"></i>
+                </div>
+                <div>
+                    <h1 class="header-title">Kings College School</h1>
+                    <p class="header-subtitle">Security Dashboard - Cascais Campus</p>
                 </div>
             </div>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div class="user-badge">
+                    <i class="fas fa-shield-alt"></i>
+                    <span id="currentUser">Security Guard</span>
+                </div>
+                <button class="logout-btn" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                </button>
+            </div>
+        </div>
 
-            <!-- Pickup Queue -->
-            <div class="queue-section">
-                <h2 class="queue-title">
-                    <i class="fas fa-list"></i>
-                    Pickup Queue
-                </h2>
-                <div id="pickupQueue">
-                    <div class="empty-queue">
-                        No pickups in queue
+        <div class="main-content">
+            <!-- Station Title -->
+            <h1 class="station-title">Security Guard Station</h1>
+
+            <!-- Dashboard Grid -->
+            <div class="dashboard-grid">
+                <!-- Search Section -->
+                <div class="search-section">
+                    <h2 style="color: #3b82f6; font-size: 1.8rem; font-weight: 700; margin-bottom: 25px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                        <i class="fas fa-search"></i>
+                        Student Search
+                    </h2>
+                    <div class="search-container">
+                        <input type="text" 
+                               id="studentSearch" 
+                               class="search-input" 
+                               placeholder="Search students by name, class, or parent name..."
+                               autocomplete="off">
+                        <div class="search-dropdown" id="searchDropdown">
+                            <!-- Dropdown items will be populated by JavaScript -->
+                        </div>
+                        <button class="call-btn" id="callStudentBtn" disabled>
+                            <i class="fas fa-phone"></i>
+                            Call Student
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Pickup Queue -->
+                <div class="queue-section">
+                    <h2 class="queue-title">
+                        <i class="fas fa-list"></i>
+                        Pickup Queue
+                    </h2>
+                    <div id="pickupQueue">
+                        <div class="empty-queue">
+                            No pickups in queue
+                        </div>
                     </div>
                 </div>
             </div>
@@ -562,7 +640,7 @@
     </div>
 
     <script>
-        // Embedded Supabase Configuration
+        // Configuration - Move these to environment variables in production
         const SUPABASE_URL = 'https://hzzaauogpmlnymxguppp.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6emFhdW9ncG1sbnlteGd1cHBwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwNzU2NTAsImV4cCI6MjA2MzY1MTY1MH0.16_3QrnieC_GdBfiuaRpaw4vsXTRCgw0hXXDNqbzFQQ';
 
@@ -570,6 +648,72 @@
         let students = [];
         let selectedStudent = null;
         let pickupQueue = [];
+        let currentUser = null;
+
+        // Session timeout (30 minutes)
+        const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes in milliseconds
+
+        // Authentication functions
+        function checkAuthentication() {
+            const authToken = sessionStorage.getItem('school_auth_token');
+            const authTime = sessionStorage.getItem('school_auth_time');
+            const userRole = sessionStorage.getItem('school_user_role');
+            const userName = sessionStorage.getItem('school_user_name');
+            
+            console.log('Checking authentication...', { authToken, authTime, userRole, userName });
+            
+            if (!authToken || !authTime || !userRole) {
+                console.log('❌ No authentication credentials found');
+                return false;
+            }
+            
+            // Check if user has security role
+            if (userRole !== 'security') {
+                console.log('❌ User does not have security role:', userRole);
+                showToast('Access denied: Security role required', 'error');
+                return false;
+            }
+            
+            // Check session timeout
+            const currentTime = Date.now();
+            const loginTime = parseInt(authTime);
+            
+            if (currentTime - loginTime > SESSION_TIMEOUT) {
+                console.log('❌ Session expired');
+                clearAuthentication();
+                showToast('Session expired. Please login again.', 'error');
+                return false;
+            }
+            
+            // Valid authentication
+            currentUser = {
+                name: userName,
+                role: userRole,
+                token: authToken
+            };
+            
+            console.log('✅ Authentication valid for user:', currentUser);
+            return true;
+        }
+
+        function clearAuthentication() {
+            sessionStorage.removeItem('school_auth_token');
+            sessionStorage.removeItem('school_auth_time');
+            sessionStorage.removeItem('school_user_role');
+            sessionStorage.removeItem('school_user_name');
+            currentUser = null;
+        }
+
+        function redirectToLogin() {
+            clearAuthentication();
+            window.location.href = 'index.html';
+        }
+
+        function updateSessionTime() {
+            if (currentUser) {
+                sessionStorage.setItem('school_auth_time', Date.now().toString());
+            }
+        }
 
         // Initialize Supabase
         function initializeSupabase() {
@@ -624,25 +768,6 @@
             try {
                 console.log('Loading pickup queue...');
                 
-                // First, let's see what pickup calls exist with any status
-                const { data: allCalls, error: allError } = await supabase
-                    .from('pickup_calls')
-                    .select('id, status, student_name, created_at')
-                    .order('created_at', { ascending: false });
-
-                if (allError) {
-                    console.error('Error fetching all pickup calls:', allError);
-                } else {
-                    console.log('All pickup calls in database:', allCalls);
-                    console.log('Available statuses:', [...new Set(allCalls.map(call => call.status))]);
-                    const statusCounts = {};
-                    allCalls.forEach(call => {
-                        statusCounts[call.status] = (statusCounts[call.status] || 0) + 1;
-                    });
-                    console.log('Status counts:', statusCounts);
-                }
-                
-                // Get pickup calls with student information - include both "called" and "on the way"
                 const { data, error } = await supabase
                     .from('pickup_calls')
                     .select(`
@@ -668,90 +793,53 @@
                 }
                 
                 console.log('Raw pickup calls data:', data);
-                console.log('Found', data.length, 'pickup calls with status "called" or "on the way"');
                 
-                // Convert database records to local queue format
-                pickupQueue = data.map(call => {
-                    console.log('Processing call:', call);
-                    return {
-                        id: call.id,
-                        dbId: call.id,
-                        status: call.status,
-                        student: {
-                            id: call.student_id,
-                            name: call.student_name || 'Unknown Name',
-                            class: call.students.class || 'Unknown Class',
-                            photoUrl: call.students.photo_url || ''
-                        },
-                        calledAt: new Date(call.called_time || call.created_at).toLocaleTimeString(),
-                        databaseRecord: call
-                    };
-                });
+                pickupQueue = data.map(call => ({
+                    id: call.id,
+                    dbId: call.id,
+                    status: call.status,
+                    student: {
+                        id: call.student_id,
+                        name: call.student_name || 'Unknown Name',
+                        class: call.students.class || 'Unknown Class',
+                        photoUrl: call.students.photo_url || ''
+                    },
+                    calledAt: new Date(call.called_time || call.created_at).toLocaleTimeString(),
+                    databaseRecord: call
+                }));
                 
                 console.log('✅ Pickup queue loaded successfully:', pickupQueue.length, 'items');
-                console.log('Queue with statuses:', pickupQueue.map(q => ({ name: q.student.name, status: q.status })));
-                
                 updateQueueDisplay();
                 
             } catch (error) {
                 console.error('Error loading pickup queue:', error);
-                console.error('Error details:', {
-                    message: error.message,
-                    code: error.code,
-                    details: error.details,
-                    hint: error.hint
-                });
                 showToast('Failed to load pickup queue', 'error');
             }
         }
 
-        // Improved search function with fuzzy matching
-        function performFuzzySearch(query) {
-            const searchTerm = query.toLowerCase().trim();
-            
-            if (searchTerm.length === 0) return [];
-            
-            return students.filter(student => {
-                const studentName = student.name.toLowerCase();
-                const className = student.class.toLowerCase();
-                const parentContact = (student.parent_contact || '').toLowerCase();
-                
-                // Extract parent name from contact (everything before the dash)
-                const parentName = parentContact.split(' - ')[0] || '';
-                
-                // Check for various matching patterns
-                const nameMatches = studentName.includes(searchTerm) || 
-                                  studentName.startsWith(searchTerm) ||
-                                  studentName.split(' ').some(word => word.startsWith(searchTerm));
-                
-                const classMatches = className.includes(searchTerm);
-                
-                const parentMatches = parentName.includes(searchTerm) ||
-                                    parentName.split(' ').some(word => word.startsWith(searchTerm));
-                
-                // Match individual characters for more fuzzy search
-                const fuzzyNameMatch = searchTerm.split('').every(char => studentName.includes(char));
-                const fuzzyParentMatch = searchTerm.split('').every(char => parentName.includes(char));
-                
-                return nameMatches || classMatches || parentMatches || 
-                       (searchTerm.length >= 2 && (fuzzyNameMatch || fuzzyParentMatch));
-            }).sort((a, b) => {
-                // Prioritize exact matches first
-                const aExact = a.name.toLowerCase().startsWith(searchTerm);
-                const bExact = b.name.toLowerCase().startsWith(searchTerm);
-                
-                if (aExact && !bExact) return -1;
-                if (!aExact && bExact) return 1;
-                
-                return a.name.localeCompare(b.name);
-            });
-        }
-
-        // Check authentication when page loads - SECURITY ONLY
+        // Main initialization function
         document.addEventListener('DOMContentLoaded', async function() {
+            console.log('Security dashboard loading...');
+            
+            // First, check authentication
+            if (!checkAuthentication()) {
+                console.log('❌ Authentication failed - showing security overlay');
+                document.getElementById('securityOverlay').classList.remove('hidden');
+                document.getElementById('mainDashboard').classList.add('hidden');
+                return;
+            }
+            
+            // Hide security overlay and show dashboard
+            document.getElementById('securityOverlay').classList.add('hidden');
+            document.getElementById('mainDashboard').classList.remove('hidden');
+            
+            // Update user display
+            const currentUserElement = document.getElementById('currentUser');
+            if (currentUserElement && currentUser) {
+                currentUserElement.textContent = currentUser.name;
+            }
+            
             try {
-                console.log('Security dashboard loading...');
-                
                 // Initialize Supabase
                 if (!initializeSupabase()) {
                     return;
@@ -766,10 +854,13 @@
                 console.log('Security dashboard initializing...');
                 initializeEventListeners();
                 updateCallButton();
-                console.log('Security dashboard loaded successfully');
+                console.log('✅ Security dashboard loaded successfully');
                 
-                // Periodic refresh of pickup queue
-                setInterval(loadPickupQueue, 60000); // Refresh every 60 seconds
+                // Periodic refresh and session activity
+                setInterval(() => {
+                    updateSessionTime();
+                    loadPickupQueue();
+                }, 60000); // Refresh every 60 seconds
                 
                 // Real-time subscription to pickup_calls table
                 const subscription = supabase
@@ -780,10 +871,20 @@
                         table: 'pickup_calls'
                     }, (payload) => {
                         console.log('Real-time update received:', payload);
-                        // Refresh pickup queue when any change occurs
                         loadPickupQueue();
                     })
                     .subscribe();
+                
+                // Update session time on user activity
+                document.addEventListener('click', updateSessionTime);
+                document.addEventListener('keypress', updateSessionTime);
+                
+                // Periodic session check
+                setInterval(() => {
+                    if (!checkAuthentication()) {
+                        redirectToLogin();
+                    }
+                }, 5 * 60 * 1000); // Check every 5 minutes
                 
             } catch (error) {
                 console.error('Initialization error:', error);
@@ -799,14 +900,10 @@
             if (searchInput) {
                 searchInput.addEventListener('input', handleSearchInput);
                 searchInput.addEventListener('keydown', handleSearchKeydown);
-            } else {
-                console.error('Search input not found');
             }
 
             if (callBtn) {
                 callBtn.addEventListener('click', handleCallStudent);
-            } else {
-                console.error('Call button not found');
             }
 
             if (toastClose) {
@@ -823,6 +920,43 @@
                 if (!e.target.closest('.search-container')) {
                     hideDropdown();
                 }
+            });
+        }
+
+        // Search functionality (same as before)
+        function performFuzzySearch(query) {
+            const searchTerm = query.toLowerCase().trim();
+            
+            if (searchTerm.length === 0) return [];
+            
+            return students.filter(student => {
+                const studentName = student.name.toLowerCase();
+                const className = student.class.toLowerCase();
+                const parentContact = (student.parent_contact || '').toLowerCase();
+                
+                const parentName = parentContact.split(' - ')[0] || '';
+                
+                const nameMatches = studentName.includes(searchTerm) || 
+                                  studentName.startsWith(searchTerm) ||
+                                  studentName.split(' ').some(word => word.startsWith(searchTerm));
+                
+                const classMatches = className.includes(searchTerm);
+                const parentMatches = parentName.includes(searchTerm) ||
+                                    parentName.split(' ').some(word => word.startsWith(searchTerm));
+                
+                const fuzzyNameMatch = searchTerm.split('').every(char => studentName.includes(char));
+                const fuzzyParentMatch = searchTerm.split('').every(char => parentName.includes(char));
+                
+                return nameMatches || classMatches || parentMatches || 
+                       (searchTerm.length >= 2 && (fuzzyNameMatch || fuzzyParentMatch));
+            }).sort((a, b) => {
+                const aExact = a.name.toLowerCase().startsWith(searchTerm);
+                const bExact = b.name.toLowerCase().startsWith(searchTerm);
+                
+                if (aExact && !bExact) return -1;
+                if (!aExact && bExact) return 1;
+                
+                return a.name.localeCompare(b.name);
             });
         }
 
@@ -886,12 +1020,10 @@
                     const item = document.createElement('div');
                     item.className = 'dropdown-item';
                     
-                    // Check if student is in queue
                     const inQueue = pickupQueue.find(q => q.student.id === student.id);
                     const availability = inQueue ? 'called' : student.status;
                     const availabilityText = inQueue ? 'CALLED' : 'AVAILABLE';
                     
-                    // Extract parent name for display
                     const parentName = student.parent_contact ? student.parent_contact.split(' - ')[0] : 'No contact';
                     
                     item.innerHTML = `
@@ -970,7 +1102,6 @@
             try {
                 if (!selectedStudent) return;
 
-                // Check if student is already in queue
                 const alreadyInQueue = pickupQueue.find(item => item.student.id === selectedStudent.id);
                 
                 if (alreadyInQueue) {
@@ -978,13 +1109,12 @@
                     return;
                 }
 
-                // Add to Supabase pickup_calls table
                 const callData = {
                     student_id: selectedStudent.id,
                     student_name: selectedStudent.name,
                     called_time: new Date().toISOString(),
                     status: 'called',
-                    security_user: 'Security Guard',
+                    security_user: currentUser.name,
                     notes: `Called from security station at ${new Date().toLocaleTimeString()}`
                 };
 
@@ -1001,11 +1131,10 @@
 
                 console.log('✅ Call recorded in database:', data[0]);
 
-                // Add to local pickup queue using database record
                 const queueItem = {
                     id: data[0].id,
                     dbId: data[0].id,
-                    status: 'called', // Include status for new calls
+                    status: 'called',
                     student: {
                         id: selectedStudent.id,
                         name: selectedStudent.name,
@@ -1019,7 +1148,6 @@
                 pickupQueue.push(queueItem);
                 updateQueueDisplay();
                 
-                // Reset search
                 const searchInput = document.getElementById('studentSearch');
                 if (searchInput) {
                     searchInput.value = '';
@@ -1028,6 +1156,7 @@
                 updateCallButton();
                 
                 showToast(`${queueItem.student.name} has been called for pickup`, 'success');
+                updateSessionTime(); // Update session on activity
             } catch (error) {
                 console.error('Call student error:', error);
                 showToast('Error calling student. Please try again.', 'error');
@@ -1050,7 +1179,6 @@
                     const queueElement = document.createElement('div');
                     queueElement.className = 'queue-item';
                     
-                    // Calculate time elapsed since called
                     const calledTime = new Date(item.databaseRecord.called_time || item.databaseRecord.created_at);
                     const timeElapsed = getTimeElapsed(calledTime);
                     const timeClass = getTimeClass(calledTime);
@@ -1081,14 +1209,13 @@
                     queueContainer.appendChild(queueElement);
                 });
                 
-                // Start the time counter updates
                 startTimeCounters();
             } catch (error) {
                 console.error('Queue display error:', error);
             }
         }
 
-        // Time counter functions (similar to monitor page)
+        // Time counter functions
         function getTimeElapsed(timestamp) {
             const now = new Date();
             const diffMs = now - timestamp;
@@ -1115,10 +1242,8 @@
         function startTimeCounters() {
             const counters = document.querySelectorAll('.time-counter');
             
-            // Update immediately
             updateTimeCounters();
             
-            // Update every second
             if (window.timeCounterInterval) {
                 clearInterval(window.timeCounterInterval);
             }
@@ -1148,7 +1273,6 @@
                 const queueItem = pickupQueue[index];
                 const student = queueItem.student;
                 
-                // Update database record
                 const { error } = await supabase
                     .from('pickup_calls')
                     .update({ 
@@ -1165,11 +1289,11 @@
 
                 console.log('✅ Pickup completed in database');
                 
-                // Remove from local queue
                 pickupQueue.splice(index, 1);
                 updateQueueDisplay();
                 
                 showToast(`${student.name} pickup completed`, 'success');
+                updateSessionTime();
                 
             } catch (error) {
                 console.error('Complete pickup error:', error);
@@ -1188,7 +1312,6 @@
                 const queueItem = pickupQueue[index];
                 const student = queueItem.student;
                 
-                // Update database record
                 const { error } = await supabase
                     .from('pickup_calls')
                     .update({ 
@@ -1205,11 +1328,11 @@
 
                 console.log('✅ Pickup cancelled in database');
                 
-                // Remove from local queue
                 pickupQueue.splice(index, 1);
                 updateQueueDisplay();
                 
                 showToast(`${student.name} pickup cancelled`, 'error');
+                updateSessionTime();
                 
             } catch (error) {
                 console.error('Cancel pickup error:', error);
@@ -1237,7 +1360,11 @@
 
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
-                window.location.href = 'index.html';
+                clearAuthentication();
+                showToast('Logged out successfully', 'info');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1000);
             }
         }
     </script>

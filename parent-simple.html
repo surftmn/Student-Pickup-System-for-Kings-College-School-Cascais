@@ -20,6 +20,40 @@
             color: #333;
         }
 
+        /* Security overlay for unauthorized access */
+        .security-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            color: white;
+            text-align: center;
+        }
+
+        .security-message {
+            background: #1e293b;
+            padding: 40px;
+            border-radius: 20px;
+            border: 2px solid #ef4444;
+            max-width: 500px;
+        }
+
+        .security-icon {
+            font-size: 4rem;
+            color: #ef4444;
+            margin-bottom: 20px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
         /* Header */
         .header {
             background: rgba(255, 255, 255, 0.95);
@@ -53,6 +87,25 @@
             color: #64748b;
             font-size: 1rem;
             margin-top: 4px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-right: 20px;
+        }
+
+        .user-badge {
+            background: #059669;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .logout-btn {
@@ -232,44 +285,48 @@
             right: 20px;
             background: white;
             padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-            transform: translateX(400px);
-            transition: transform 0.3s ease;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+            display: none;
+            align-items: center;
+            gap: 15px;
             z-index: 1001;
-            max-width: 350px;
-        }
-
-        .toast.show {
-            transform: translateX(0);
-        }
-
-        .toast.success {
-            border-left: 4px solid #10b981;
-        }
-
-        .toast.error {
-            border-left: 4px solid #ef4444;
-        }
-
-        .toast.info {
+            max-width: 400px;
             border-left: 4px solid #3b82f6;
         }
 
-        .toast-content {
+        .toast.show {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 15px;
+        }
+
+        .toast.success {
+            border-left-color: #10b981;
+        }
+
+        .toast.error {
+            border-left-color: #ef4444;
+        }
+
+        .toast.info {
+            border-left-color: #3b82f6;
+        }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-message {
+            color: #374151;
+            font-weight: 500;
         }
 
         .toast-close {
             background: none;
             border: none;
-            color: #6b7280;
+            color: #9ca3af;
             cursor: pointer;
-            padding: 5px;
-            border-radius: 5px;
+            padding: 4px;
+            border-radius: 4px;
         }
 
         .toast-close:hover {
@@ -347,32 +404,56 @@
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <div class="header">
-        <div class="header-left">
-            <div class="crown-logo">
-                <i class="fas fa-crown"></i>
+    <!-- Security Overlay (shown for unauthorized users) -->
+    <div class="security-overlay" id="securityOverlay">
+        <div class="security-message">
+            <div class="security-icon">
+                <i class="fas fa-shield-exclamation"></i>
             </div>
-            <div>
-                <h1 class="header-title">Kings College School</h1>
-                <p class="header-subtitle">Cascais - Student Pickup Management System</p>
-            </div>
+            <h2>Unauthorized Access</h2>
+            <p>This is a secure area. You need to login first to access the parent dashboard.</p>
+            <button class="logout-btn" style="margin-top: 20px;" onclick="redirectToLogin()">
+                <i class="fas fa-sign-in-alt"></i>
+                Go to Login
+            </button>
         </div>
-        <button class="logout-btn" onclick="logout()">
-            <i class="fas fa-sign-out-alt"></i>
-            Logout
-        </button>
     </div>
 
-    <!-- Main Content -->
-    <div class="main-content">
-        <div class="welcome-section">
-            <h1 class="welcome-title">Welcome, Sarah Johnson</h1>
+    <!-- Main Dashboard Content (hidden until authentication is verified) -->
+    <div id="mainDashboard" class="hidden">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <div class="crown-logo">
+                    <i class="fas fa-crown"></i>
+                </div>
+                <div>
+                    <h1 class="header-title">Kings College School</h1>
+                    <p class="header-subtitle">Cascais - Student Pickup Management System</p>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div class="user-badge">
+                    <i class="fas fa-user-friends"></i>
+                    <span id="currentUser">Parent</span>
+                </div>
+                <button class="logout-btn" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                </button>
+            </div>
         </div>
 
-        <!-- Student Cards -->
-        <div class="student-cards" id="studentCards">
-            <!-- Student cards will be populated by JavaScript -->
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="welcome-section">
+                <h1 class="welcome-title" id="welcomeTitle">Welcome, Parent</h1>
+            </div>
+
+            <!-- Student Cards -->
+            <div class="student-cards" id="studentCards">
+                <!-- Student cards will be populated by JavaScript -->
+            </div>
         </div>
     </div>
 
@@ -388,33 +469,133 @@
     <div class="toast" id="toast">
         <div class="toast-content">
             <span class="toast-message" id="toastMessage"></span>
-            <button class="toast-close" id="toastClose">
-                <i class="fas fa-times"></i>
-            </button>
         </div>
+        <button class="toast-close" id="toastClose">
+            <i class="fas fa-times"></i>
+        </button>
     </div>
-
-    <!-- Load Supabase configuration -->
-    <script src="supabase-config.js"></script>
     
     <script>
-        // Sample parent's children data
-        const parentStudents = [
-            { 
-                id: 1, 
-                name: "Emma Johnson", 
-                class: "Class 2C", 
-                status: "waiting",
-                photo: null 
-            },
-            { 
-                id: 2, 
-                name: "Sophia Williams", 
-                class: "Class 1A", 
-                status: "waiting",
-                photo: null 
+        // Configuration
+        const SUPABASE_URL = 'https://hzzaauogpmlnymxguppp.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6emFhdW9ncG1sbnlteGd1cHBwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwNzU2NTAsImV4cCI6MjA2MzY1MTY1MH0.16_3QrnieC_GdBfiuaRpaw4vsXTRCgw0hXXDNqbzFQQ';
+
+        let supabase = null;
+        let currentUser = null;
+        let parentStudents = [];
+
+        // Session timeout (30 minutes)
+        const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes in milliseconds
+
+        // Authentication functions
+        function checkAuthentication() {
+            const authToken = sessionStorage.getItem('school_auth_token');
+            const authTime = sessionStorage.getItem('school_auth_time');
+            const userRole = sessionStorage.getItem('school_user_role');
+            const userName = sessionStorage.getItem('school_user_name');
+            
+            console.log('Checking authentication...', { authToken, authTime, userRole, userName });
+            
+            if (!authToken || !authTime || !userRole) {
+                console.log('❌ No authentication credentials found');
+                return false;
             }
-        ];
+            
+            // Check if user has parent role
+            if (userRole !== 'parent') {
+                console.log('❌ User does not have parent role:', userRole);
+                showToast('Access denied: Parent access required', 'error');
+                return false;
+            }
+            
+            // Check session timeout
+            const currentTime = Date.now();
+            const loginTime = parseInt(authTime);
+            
+            if (currentTime - loginTime > SESSION_TIMEOUT) {
+                console.log('❌ Session expired');
+                clearAuthentication();
+                showToast('Session expired. Please login again.', 'error');
+                return false;
+            }
+            
+            // Valid authentication
+            currentUser = {
+                name: userName,
+                role: userRole,
+                token: authToken
+            };
+            
+            console.log('✅ Authentication valid for user:', currentUser);
+            return true;
+        }
+
+        function clearAuthentication() {
+            sessionStorage.removeItem('school_auth_token');
+            sessionStorage.removeItem('school_auth_time');
+            sessionStorage.removeItem('school_user_role');
+            sessionStorage.removeItem('school_user_name');
+            currentUser = null;
+        }
+
+        function redirectToLogin() {
+            clearAuthentication();
+            window.location.href = 'login.html';
+        }
+
+        function updateSessionTime() {
+            if (currentUser) {
+                sessionStorage.setItem('school_auth_time', Date.now().toString());
+            }
+        }
+
+        // Initialize Supabase
+        function initializeSupabase() {
+            try {
+                if (typeof window.supabase !== 'undefined') {
+                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    console.log('✅ Supabase initialized successfully');
+                    return true;
+                } else {
+                    console.error('❌ Supabase library not loaded');
+                    showToast('Failed to load system', 'error');
+                    return false;
+                }
+            } catch (error) {
+                console.error('Supabase initialization error:', error);
+                showToast('System initialization failed', 'error');
+                return false;
+            }
+        }
+
+        // Load parent's students (will be integrated with Supabase later)
+        async function loadParentStudents() {
+            try {
+                // For now, using sample data - this would be replaced with real Supabase query
+                parentStudents = [
+                    { 
+                        id: 1, 
+                        name: "Emma Johnson", 
+                        class: "Class 2C", 
+                        status: "waiting",
+                        photo: null 
+                    },
+                    { 
+                        id: 2, 
+                        name: "Sophia Williams", 
+                        class: "Class 1A", 
+                        status: "waiting",
+                        photo: null 
+                    }
+                ];
+
+                console.log('✅ Parent students loaded successfully');
+                renderStudentCards();
+            } catch (error) {
+                console.error('Error loading parent students:', error);
+                showToast('Failed to load students', 'error');
+            }
+        }
 
         // DOM elements
         const studentCardsContainer = document.getElementById('studentCards');
@@ -422,6 +603,17 @@
 
         function renderStudentCards() {
             studentCardsContainer.innerHTML = '';
+
+            if (parentStudents.length === 0) {
+                studentCardsContainer.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: white;">
+                        <i class="fas fa-users" style="font-size: 3rem; margin-bottom: 20px; opacity: 0.7;"></i>
+                        <p style="font-size: 1.2rem; opacity: 0.8;">No students associated with your account.</p>
+                        <p style="font-size: 1rem; opacity: 0.6; margin-top: 10px;">Please contact the school office if this is incorrect.</p>
+                    </div>
+                `;
+                return;
+            }
 
             parentStudents.forEach(student => {
                 const card = document.createElement('div');
@@ -479,7 +671,7 @@
             // Show loading
             loadingOverlay.classList.add('show');
 
-            // Simulate API call
+            // Simulate API call (will be replaced with real Supabase call)
             setTimeout(() => {
                 // Update student status
                 student.status = 'called';
@@ -492,6 +684,9 @@
                 
                 // Re-render cards
                 renderStudentCards();
+
+                // Update session activity
+                updateSessionTime();
 
                 // Simulate status updates
                 simulateStatusUpdates(student);
@@ -523,35 +718,87 @@
 
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
-                window.location.href = 'login.html';
+                clearAuthentication();
+                showToast('Logged out successfully', 'info');
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 1000);
             }
         }
 
-        // Close toast functionality
-        document.getElementById('toastClose').addEventListener('click', function() {
-            document.getElementById('toast').classList.remove('show');
-        });
-
-        // Initialize page - PARENT ONLY
+        // Initialize page
         document.addEventListener('DOMContentLoaded', async function() {
+            console.log('Parent dashboard loading...');
+            
+            // First, check authentication
+            if (!checkAuthentication()) {
+                console.log('❌ Authentication failed - showing security overlay');
+                document.getElementById('securityOverlay').classList.remove('hidden');
+                document.getElementById('mainDashboard').classList.add('hidden');
+                return;
+            }
+            
+            // Hide security overlay and show dashboard
+            document.getElementById('securityOverlay').classList.add('hidden');
+            document.getElementById('mainDashboard').classList.remove('hidden');
+            
+            // Update user display
+            const currentUserElement = document.getElementById('currentUser');
+            const welcomeTitle = document.getElementById('welcomeTitle');
+            if (currentUserElement && currentUser) {
+                currentUserElement.textContent = currentUser.name;
+                welcomeTitle.textContent = `Welcome, ${currentUser.name}`;
+            }
+            
             try {
-                console.log('Parent dashboard loading...');
+                // Initialize Supabase
+                if (!initializeSupabase()) {
+                    return;
+                }
                 
-                // TEMPORARILY DISABLED: Authentication check
-                // const isAuthenticated = await checkAuth('parent');
-                // if (!isAuthenticated) {
-                //     return; // Will redirect to login
-                // }
-                
-                console.log('⚠️ Authentication check temporarily disabled for testing');
                 console.log('Parent dashboard initializing...');
-                renderStudentCards();
-                console.log('Parent dashboard loaded successfully');
+                
+                // Load parent's students
+                await loadParentStudents();
+                
+                // Initialize event listeners
+                initializeEventListeners();
+                
+                console.log('✅ Parent dashboard loaded successfully');
+                
+                // Periodic session activity
+                setInterval(() => {
+                    updateSessionTime();
+                }, 60000); // Update every 60 seconds
+                
+                // Update session time on user activity
+                document.addEventListener('click', updateSessionTime);
+                document.addEventListener('keypress', updateSessionTime);
+                
+                // Periodic session check
+                setInterval(() => {
+                    if (!checkAuthentication()) {
+                        redirectToLogin();
+                    }
+                }, 5 * 60 * 1000); // Check every 5 minutes
+                
             } catch (error) {
                 console.error('Parent dashboard initialization failed:', error);
                 showToast('System initialization failed. Please refresh the page.', 'error');
             }
         });
+
+        function initializeEventListeners() {
+            // Close toast functionality
+            const toastClose = document.getElementById('toastClose');
+            if (toastClose) {
+                toastClose.addEventListener('click', function() {
+                    document.getElementById('toast').classList.remove('show');
+                });
+            }
+
+            console.log('✅ Event listeners initialized successfully');
+        }
     </script>
 </body>
-</html> 
+</html>
