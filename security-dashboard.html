@@ -1,139 +1,630 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; object-src 'none';">
-        <title>Kings College School - Student Pickup System</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="dashboard-styles.css">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kings College School - Security Dashboard</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* Security overlay for unauthorized access */
+        .security-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            color: white;
+            text-align: center;
+        }
+
+        .security-message {
+            background: #1e293b;
+            padding: 40px;
+            border-radius: 20px;
+            border: 2px solid #ef4444;
+            max-width: 500px;
+        }
+
+        .security-icon {
+            font-size: 4rem;
+            color: #ef4444;
+            margin-bottom: 20px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 20px 40px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .crown-logo {
+            color: #ffd700;
+            font-size: 2.5rem;
+        }
+
+        .header-title {
+            color: #1e40af;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .header-subtitle {
+            color: #64748b;
+            font-size: 1rem;
+            margin-top: 4px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-right: 20px;
+        }
+
+        .user-badge {
+            background: #10b981;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .station-title {
+            color: #ffffff;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 20px 0 30px 0;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .logout-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logout-btn:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
+        }
+
+        /* Main content */
+        .main-content {
+            padding: 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Dashboard grid layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            align-items: start;
+        }
+
+        /* Search section */
+        .search-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+        }
+
+        .search-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 20px 60px 20px 20px;
+            border: 3px solid #d1d5db;
+            border-radius: 15px;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            background: #fafafa;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.06);
+        }
+
+        .search-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 3px solid #d1d5db;
+            border-top: none;
+            border-radius: 0 0 15px 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .search-dropdown.show {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 18px 20px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            border-bottom: 1px solid #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .dropdown-item:hover {
+            background: #f8fafc;
+        }
+
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .student-name {
+            font-weight: 600;
+            color: #1e40af;
+            font-size: 1.1rem;
+        }
+
+        .student-class {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-top: 2px;
+        }
+
+        .student-contact {
+            color: #9ca3af;
+            font-size: 0.8rem;
+            margin-top: 4px;
+            font-style: italic;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .call-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 20px auto 0;
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .call-btn:hover {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 25px rgba(16, 185, 129, 0.4);
+        }
+
+        .call-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Queue section */
+        .queue-section {
+            position: relative;
+            z-index: 1;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+            min-height: 400px;
+        }
+
+        .search-section {
+            position: relative;
+            z-index: 2;
+        }
+
+        .queue-section {
+            position: relative;
+            z-index: 1;
+        }
+
+        .queue-title {
+            color: #3b82f6;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .queue-item {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+        }
+
+        .queue-item:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.1);
+        }
+
+        .queue-student-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .queue-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .queue-details h4 {
+            color: #1e40af;
+            margin-bottom: 5px;
+            font-size: 1.1rem;
+        }
+
+        .queue-details p {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .queue-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .complete-btn, .cancel-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .complete-btn {
+            background: #10b981;
+            color: white;
+        }
+
+        .complete-btn:hover {
+            background: #059669;
+            transform: translateY(-1px);
+        }
+
+        .cancel-btn {
+            background: #ef4444;
+            color: white;
+        }
+
+        .cancel-btn:hover {
+            background: #dc2626;
+            transform: translateY(-1px);
+        }
+
+        .empty-queue {
+            text-align: center;
+            color: #9ca3af;
+            font-style: italic;
+            padding: 40px;
+            font-size: 1.1rem;
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+            display: none;
+            align-items: center;
+            gap: 15px;
+            z-index: 1001;
+            max-width: 400px;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .toast.show {
+            display: flex;
+        }
+
+        .toast.success {
+            border-left-color: #10b981;
+        }
+
+        .toast.error {
+            border-left-color: #ef4444;
+        }
+
+        .toast.info {
+            border-left-color: #3b82f6;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-message {
+            color: #374151;
+            font-weight: 500;
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+        }
+
+        .toast-close:hover {
+            background: #f3f4f6;
+        }
+
+        /* Time counter styles */
+        .time-counter {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        .time-normal {
+            color: #64748b;
+        }
+
+        .time-warning {
+            color: #f59e0b;
+        }
+
+        .time-urgent {
+            color: #ef4444;
+        }
+
+        /* Responsive design */
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 20px;
+            }
+            
+            .header {
+                padding: 15px 20px;
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .station-title {
+                font-size: 2rem;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .queue-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .queue-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+        }
+    </style>
 </head>
-<body class="dashboard-body">
-    <!-- Header -->
-    <header class="dashboard-header">
-        <div class="header-left">
-            <div class="school-logo">
-                <i class="fas fa-crown"></i>
+<body>
+    <!-- Security Overlay (shown for unauthorized users) -->
+    <div class="security-overlay" id="securityOverlay">
+        <div class="security-message">
+            <div class="security-icon">
+                <i class="fas fa-shield-exclamation"></i>
             </div>
-            <div class="header-info">
-                <h1>Kings College School</h1>
-                <p>Security Portal</p>
-            </div>
-        </div>
-        <div class="header-right">
-            <div class="user-info">
-                <i class="fas fa-user-circle"></i>
-                <span id="userName">Loading...</span>
-            </div>
-            <button class="logout-btn" onclick="logout()">
-                <i class="fas fa-sign-out-alt"></i>
-                Logout
+            <h2>Unauthorized Access</h2>
+            <p>This is a secure area. You need to login first to access this dashboard.</p>
+            <button class="logout-btn" style="margin-top: 20px;" onclick="redirectToLogin()">
+                <i class="fas fa-sign-in-alt"></i>
+                Go to Login
             </button>
         </div>
-    </header>
+    </div>
 
-    <!-- Main Content -->
-    <main class="dashboard-main">
-        <div class="dashboard-container">
-            <!-- Welcome Message -->
-            <div class="welcome-card">
-                <div class="welcome-content">
-                    <h2><i class="fas fa-shield-alt"></i> Security Gate</h2>
-                    <p>Search for students and manage pickup queue at the school gate.</p>
+    <!-- Main Dashboard Content (hidden until authentication is verified) -->
+    <div id="mainDashboard" class="hidden">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <div class="crown-logo">
+                    <i class="fas fa-crown"></i>
                 </div>
-                <div class="time-display">
-                    <i class="fas fa-clock"></i>
-                    <span id="currentTime">Loading...</span>
+                <div>
+                    <h1 class="header-title">Kings College School</h1>
+                    <p class="header-subtitle">Security Dashboard - Cascais Campus</p>
                 </div>
             </div>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div class="user-badge">
+                    <i class="fas fa-shield-alt"></i>
+                    <span id="currentUser">Security Guard</span>
+                </div>
+                <button class="logout-btn" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                </button>
+            </div>
+        </div>
 
-            <!-- Search Section -->
-            <div class="search-section">
-                <h3><i class="fas fa-search"></i> Student Search</h3>
-                <div class="search-bar">
-                    <input type="text" id="searchInput" class="search-input" 
-                           placeholder="Search by student name, class, or parent name...">
-                    <button class="search-btn" onclick="securityDashboard.searchStudents()">
+        <div class="main-content">
+            <!-- Station Title -->
+            <h1 class="station-title">Security Guard Station</h1>
+
+            <!-- Dashboard Grid -->
+            <div class="dashboard-grid">
+                <!-- Search Section -->
+                <div class="search-section">
+                    <h2 style="color: #3b82f6; font-size: 1.8rem; font-weight: 700; margin-bottom: 25px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px;">
                         <i class="fas fa-search"></i>
-                        Search
-                    </button>
-                </div>
-                
-                <!-- Search Results -->
-                <div class="search-results" id="searchResults">
-                    <!-- Search results will appear here -->
-                </div>
-            </div>
-
-            <!-- Pickup Queue Section -->
-            <div class="queue-section">
-                <h3><i class="fas fa-clipboard-list"></i> Ready for Pickup</h3>
-                <p class="section-subtitle">Students found by monitors and ready at the gate</p>
-                
-                <div class="pickup-queue-list" id="pickupQueueList">
-                    <!-- Ready students will be populated dynamically -->
-                </div>
-            </div>
-
-            <!-- Chat Section -->
-            <div class="chat-section">
-                <h3><i class="fas fa-comments"></i> Live Chat</h3>
-                <div class="chat-container" id="chatContainer">
-                    <div class="chat-messages" id="chatMessages">
-                        <!-- Chat messages will be populated here -->
-                    </div>
-                    <div class="chat-input-container">
-                        <input type="text" id="chatInput" placeholder="Type a message to monitors and parents..."
-                               onkeypress="if(event.key==='Enter') securityDashboard.sendMessage()">
-                        <button class="btn-primary" onclick="securityDashboard.sendMessage()">
-                            <i class="fas fa-paper-plane"></i>
-                            Send
+                        Student Search
+                    </h2>
+                    <div class="search-container">
+                        <input type="text" 
+                               id="studentSearch" 
+                               class="search-input" 
+                               placeholder="Search students by name, class, or parent name..."
+                               autocomplete="off">
+                        <div class="search-dropdown" id="searchDropdown">
+                            <!-- Dropdown items will be populated by JavaScript -->
+                        </div>
+                        <button class="call-btn" id="callStudentBtn" disabled>
+                            <i class="fas fa-phone"></i>
+                            Call Student
                         </button>
                     </div>
                 </div>
-            </div>
-        </div>
-    </main>
 
-    <!-- Student Details Modal -->
-    <div class="modal" id="studentModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="modalStudentName">Student Details</h3>
-                <button class="modal-close" id="modalClose">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="student-details-view">
-                    <div class="child-photo-large" id="modalStudentPhoto">
-                        <img src="" alt="" id="modalStudentImage">
-                    </div>
-                    <div class="student-info-detailed">
-                        <h4 id="modalStudentDetails">Loading...</h4>
-                        <div class="detail-item">
-                            <strong>Class:</strong>
-                            <span id="modalStudentClass">-</span>
-                        </div>
-                        <div class="detail-item">
-                            <strong>Status:</strong>
-                            <span id="modalStudentStatus">-</span>
-                        </div>
-                        <div class="detail-item">
-                            <strong>Last Updated:</strong>
-                            <span id="modalLastUpdated">-</span>
+                <!-- Pickup Queue -->
+                <div class="queue-section">
+                    <h2 class="queue-title">
+                        <i class="fas fa-list"></i>
+                        Pickup Queue
+                    </h2>
+                    <div id="pickupQueue">
+                        <div class="empty-queue">
+                            No pickups in queue
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" id="cancelModal">Close</button>
-                <button class="btn-success" id="markPickedUp" style="display: none;">
-                    <i class="fas fa-check-circle"></i>
-                    Mark as Picked Up
-                </button>
             </div>
         </div>
     </div>
@@ -142,22 +633,740 @@
     <div class="toast" id="toast">
         <div class="toast-content">
             <span class="toast-message" id="toastMessage"></span>
-            <button class="toast-close" id="toastClose">
-                <i class="fas fa-times"></i>
-            </button>
         </div>
+        <button class="toast-close" id="toastClose">
+            <i class="fas fa-times"></i>
+        </button>
     </div>
 
-    <!-- Loading Overlay -->
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-spinner">
-            <i class="fas fa-spinner fa-spin"></i>
-            <p>Loading...</p>
-        </div>
-    </div>
+    <script>
+        // Configuration - Move these to environment variables in production
+        const SUPABASE_URL = 'https://hzzaauogpmlnymxguppp.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6emFhdW9ncG1sbnlteGd1cHBwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwNzU2NTAsImV4cCI6MjA2MzY1MTY1MH0.16_3QrnieC_GdBfiuaRpaw4vsXTRCgw0hXXDNqbzFQQ';
 
-    <script src="supabase-config.js"></script>
-    <script src="auth-system.js"></script>
-    <script src="security-dashboard.js"></script>
+        let supabase = null;
+        let students = [];
+        let selectedStudent = null;
+        let pickupQueue = [];
+        let currentUser = null;
+
+        // Session timeout (30 minutes)
+        const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes in milliseconds
+
+        // Authentication functions
+        function checkAuthentication() {
+            const authToken = sessionStorage.getItem('school_auth_token');
+            const authTime = sessionStorage.getItem('school_auth_time');
+            const userRole = sessionStorage.getItem('school_user_role');
+            const userName = sessionStorage.getItem('school_user_name');
+            
+            console.log('Checking authentication...', { authToken, authTime, userRole, userName });
+            
+            if (!authToken || !authTime || !userRole) {
+                console.log('❌ No authentication credentials found');
+                return false;
+            }
+            
+            // Check if user has security role
+            if (userRole !== 'security') {
+                console.log('❌ User does not have security role:', userRole);
+                showToast('Access denied: Security role required', 'error');
+                return false;
+            }
+            
+            // Check session timeout
+            const currentTime = Date.now();
+            const loginTime = parseInt(authTime);
+            
+            if (currentTime - loginTime > SESSION_TIMEOUT) {
+                console.log('❌ Session expired');
+                clearAuthentication();
+                showToast('Session expired. Please login again.', 'error');
+                return false;
+            }
+            
+            // Valid authentication
+            currentUser = {
+                name: userName,
+                role: userRole,
+                token: authToken
+            };
+            
+            console.log('✅ Authentication valid for user:', currentUser);
+            return true;
+        }
+
+        function clearAuthentication() {
+            sessionStorage.removeItem('school_auth_token');
+            sessionStorage.removeItem('school_auth_time');
+            sessionStorage.removeItem('school_user_role');
+            sessionStorage.removeItem('school_user_name');
+            currentUser = null;
+        }
+
+        function redirectToLogin() {
+            clearAuthentication();
+            window.location.href = 'index.html';
+        }
+
+        function updateSessionTime() {
+            if (currentUser) {
+                sessionStorage.setItem('school_auth_time', Date.now().toString());
+            }
+        }
+
+        // Initialize Supabase
+        function initializeSupabase() {
+            try {
+                if (typeof window.supabase !== 'undefined') {
+                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    console.log('✅ Supabase initialized successfully');
+                    return true;
+                } else {
+                    console.error('❌ Supabase library not loaded');
+                    showToast('Failed to load system', 'error');
+                    return false;
+                }
+            } catch (error) {
+                console.error('Supabase initialization error:', error);
+                showToast('System initialization failed', 'error');
+                return false;
+            }
+        }
+
+        // Load students from Supabase
+        async function loadStudents() {
+            try {
+                const { data, error } = await supabase
+                    .from('students')
+                    .select('*')
+                    .order('name');
+                
+                if (error) throw error;
+                
+                students = data.map(student => ({
+                    ...student,
+                    status: 'available'
+                }));
+                
+                console.log('✅ Students loaded successfully:', students.length);
+            } catch (error) {
+                console.error('Error loading students:', error);
+                showToast('Failed to load students', 'error');
+                
+                // Fallback to sample data if Supabase fails
+                students = [
+                    { id: 1, name: "Emma Johnson", class: "Class 2C", parent_contact: "Sarah Johnson - (555) 123-4567", status: "available" },
+                    { id: 2, name: "Oliver Smith", class: "Class 3B", parent_contact: "Michael Smith - (555) 234-5678", status: "available" },
+                    { id: 3, name: "Sophia Williams", class: "Class 1A", parent_contact: "Jennifer Williams - (555) 345-6789", status: "available" }
+                ];
+            }
+        }
+
+        // Load pickup queue from Supabase
+        async function loadPickupQueue() {
+            try {
+                console.log('Loading pickup queue...');
+                
+                const { data, error } = await supabase
+                    .from('pickup_calls')
+                    .select(`
+                        id,
+                        status,
+                        student_id,
+                        student_name,
+                        called_time,
+                        created_at,
+                        students (
+                            id,
+                            name,
+                            class,
+                            photo_url
+                        )
+                    `)
+                    .in('status', ['called', 'on the way'])
+                    .order('called_time', { ascending: true });
+                
+                if (error) {
+                    console.error('Supabase query error:', error);
+                    throw error;
+                }
+                
+                console.log('Raw pickup calls data:', data);
+                
+                pickupQueue = data.map(call => ({
+                    id: call.id,
+                    dbId: call.id,
+                    status: call.status,
+                    student: {
+                        id: call.student_id,
+                        name: call.student_name || 'Unknown Name',
+                        class: call.students.class || 'Unknown Class',
+                        photoUrl: call.students.photo_url || ''
+                    },
+                    calledAt: new Date(call.called_time || call.created_at).toLocaleTimeString(),
+                    databaseRecord: call
+                }));
+                
+                console.log('✅ Pickup queue loaded successfully:', pickupQueue.length, 'items');
+                updateQueueDisplay();
+                
+            } catch (error) {
+                console.error('Error loading pickup queue:', error);
+                showToast('Failed to load pickup queue', 'error');
+            }
+        }
+
+        // Main initialization function
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('Security dashboard loading...');
+            
+            // First, check authentication
+            if (!checkAuthentication()) {
+                console.log('❌ Authentication failed - showing security overlay');
+                document.getElementById('securityOverlay').classList.remove('hidden');
+                document.getElementById('mainDashboard').classList.add('hidden');
+                return;
+            }
+            
+            // Hide security overlay and show dashboard
+            document.getElementById('securityOverlay').classList.add('hidden');
+            document.getElementById('mainDashboard').classList.remove('hidden');
+            
+            // Update user display
+            const currentUserElement = document.getElementById('currentUser');
+            if (currentUserElement && currentUser) {
+                currentUserElement.textContent = currentUser.name;
+            }
+            
+            try {
+                // Initialize Supabase
+                if (!initializeSupabase()) {
+                    return;
+                }
+                
+                // Load students and pickup queue from database
+                await Promise.all([
+                    loadStudents(),
+                    loadPickupQueue()
+                ]);
+                
+                console.log('Security dashboard initializing...');
+                initializeEventListeners();
+                updateCallButton();
+                console.log('✅ Security dashboard loaded successfully');
+                
+                // Periodic refresh and session activity
+                setInterval(() => {
+                    updateSessionTime();
+                    loadPickupQueue();
+                }, 60000); // Refresh every 60 seconds
+                
+                // Real-time subscription to pickup_calls table
+                const subscription = supabase
+                    .channel('pickup_calls_changes')
+                    .on('postgres_changes', {
+                        event: '*',
+                        schema: 'public',
+                        table: 'pickup_calls'
+                    }, (payload) => {
+                        console.log('Real-time update received:', payload);
+                        loadPickupQueue();
+                    })
+                    .subscribe();
+                
+                // Update session time on user activity
+                document.addEventListener('click', updateSessionTime);
+                document.addEventListener('keypress', updateSessionTime);
+                
+                // Periodic session check
+                setInterval(() => {
+                    if (!checkAuthentication()) {
+                        redirectToLogin();
+                    }
+                }, 5 * 60 * 1000); // Check every 5 minutes
+                
+            } catch (error) {
+                console.error('Initialization error:', error);
+                showToast('System initialization failed. Please refresh the page.', 'error');
+            }
+        });
+
+        function initializeEventListeners() {
+            const searchInput = document.getElementById('studentSearch');
+            const callBtn = document.getElementById('callStudentBtn');
+            const toastClose = document.getElementById('toastClose');
+
+            if (searchInput) {
+                searchInput.addEventListener('input', handleSearchInput);
+                searchInput.addEventListener('keydown', handleSearchKeydown);
+            }
+
+            if (callBtn) {
+                callBtn.addEventListener('click', handleCallStudent);
+            }
+
+            if (toastClose) {
+                toastClose.addEventListener('click', function() {
+                    const toast = document.getElementById('toast');
+                    if (toast) {
+                        toast.classList.remove('show');
+                    }
+                });
+            }
+
+            // Hide dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.search-container')) {
+                    hideDropdown();
+                }
+            });
+        }
+
+        // Search functionality (same as before)
+        function performFuzzySearch(query) {
+            const searchTerm = query.toLowerCase().trim();
+            
+            if (searchTerm.length === 0) return [];
+            
+            return students.filter(student => {
+                const studentName = student.name.toLowerCase();
+                const className = student.class.toLowerCase();
+                const parentContact = (student.parent_contact || '').toLowerCase();
+                
+                const parentName = parentContact.split(' - ')[0] || '';
+                
+                const nameMatches = studentName.includes(searchTerm) || 
+                                  studentName.startsWith(searchTerm) ||
+                                  studentName.split(' ').some(word => word.startsWith(searchTerm));
+                
+                const classMatches = className.includes(searchTerm);
+                const parentMatches = parentName.includes(searchTerm) ||
+                                    parentName.split(' ').some(word => word.startsWith(searchTerm));
+                
+                const fuzzyNameMatch = searchTerm.split('').every(char => studentName.includes(char));
+                const fuzzyParentMatch = searchTerm.split('').every(char => parentName.includes(char));
+                
+                return nameMatches || classMatches || parentMatches || 
+                       (searchTerm.length >= 2 && (fuzzyNameMatch || fuzzyParentMatch));
+            }).sort((a, b) => {
+                const aExact = a.name.toLowerCase().startsWith(searchTerm);
+                const bExact = b.name.toLowerCase().startsWith(searchTerm);
+                
+                if (aExact && !bExact) return -1;
+                if (!aExact && bExact) return 1;
+                
+                return a.name.localeCompare(b.name);
+            });
+        }
+
+        function handleSearchKeydown(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const dropdown = document.getElementById('searchDropdown');
+                const firstItem = dropdown.querySelector('.dropdown-item');
+                if (firstItem) {
+                    firstItem.click();
+                }
+            }
+        }
+
+        function handleSearchInput() {
+            try {
+                const searchInput = document.getElementById('studentSearch');
+                if (!searchInput) return;
+
+                const query = searchInput.value.trim();
+                
+                if (query.length > 0) {
+                    const filteredStudents = performFuzzySearch(query);
+                    
+                    if (filteredStudents.length > 0) {
+                        showDropdown(filteredStudents);
+                    } else {
+                        showNoResults();
+                    }
+                } else {
+                    hideDropdown();
+                    selectedStudent = null;
+                    updateCallButton();
+                }
+            } catch (error) {
+                console.error('Search input error:', error);
+            }
+        }
+
+        function showNoResults() {
+            const searchDropdown = document.getElementById('searchDropdown');
+            if (!searchDropdown) return;
+
+            searchDropdown.innerHTML = `
+                <div class="dropdown-item" style="text-align: center; color: #9ca3af; cursor: default;">
+                    <i class="fas fa-search" style="margin-right: 10px;"></i>
+                    No students found matching your search
+                </div>
+            `;
+            searchDropdown.classList.add('show');
+        }
+
+        function showDropdown(studentList) {
+            try {
+                const searchDropdown = document.getElementById('searchDropdown');
+                if (!searchDropdown) return;
+
+                searchDropdown.innerHTML = '';
+                
+                studentList.forEach(student => {
+                    const item = document.createElement('div');
+                    item.className = 'dropdown-item';
+                    
+                    const inQueue = pickupQueue.find(q => q.student.id === student.id);
+                    const availability = inQueue ? 'called' : student.status;
+                    const availabilityText = inQueue ? 'CALLED' : 'AVAILABLE';
+                    
+                    const parentName = student.parent_contact ? student.parent_contact.split(' - ')[0] : 'No contact';
+                    
+                    item.innerHTML = `
+                        <div style="display: flex; align-items: center; gap: 15px; flex: 1;">
+                            ${student.photo_url ? 
+                                `<img src="${student.photo_url}" alt="${student.name}" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover;">` :
+                                `<div style="width: 45px; height: 45px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 1.1rem;">${student.name.charAt(0)}</div>`
+                            }
+                            <div style="flex: 1;">
+                                <div class="student-name">${student.name}</div>
+                                <div class="student-class">${student.class}</div>
+                                <div class="student-contact">Parent: ${parentName}</div>
+                            </div>
+                        </div>
+                        <div style="background: ${availability === 'called' ? '#dbeafe' : '#d1fae5'}; color: ${availability === 'called' ? '#1e40af' : '#065f46'}; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">
+                            ${availabilityText}
+                        </div>
+                    `;
+                    
+                    item.addEventListener('click', function() {
+                        selectStudent(student);
+                    });
+                    
+                    searchDropdown.appendChild(item);
+                });
+                
+                searchDropdown.classList.add('show');
+            } catch (error) {
+                console.error('Dropdown error:', error);
+            }
+        }
+
+        function hideDropdown() {
+            try {
+                const searchDropdown = document.getElementById('searchDropdown');
+                if (searchDropdown) {
+                    searchDropdown.classList.remove('show');
+                }
+            } catch (error) {
+                console.error('Hide dropdown error:', error);
+            }
+        }
+
+        function selectStudent(student) {
+            try {
+                selectedStudent = student;
+                const searchInput = document.getElementById('studentSearch');
+                if (searchInput) {
+                    searchInput.value = `${student.name} - ${student.class}`;
+                }
+                hideDropdown();
+                updateCallButton();
+            } catch (error) {
+                console.error('Select student error:', error);
+            }
+        }
+
+        function updateCallButton() {
+            try {
+                const callBtn = document.getElementById('callStudentBtn');
+                if (!callBtn) return;
+
+                if (selectedStudent) {
+                    callBtn.disabled = false;
+                    callBtn.innerHTML = `<i class="fas fa-phone"></i> Call ${selectedStudent.name}`;
+                } else {
+                    callBtn.disabled = true;
+                    callBtn.innerHTML = '<i class="fas fa-phone"></i> Call Student';
+                }
+            } catch (error) {
+                console.error('Update button error:', error);
+            }
+        }
+
+        async function handleCallStudent() {
+            try {
+                if (!selectedStudent) return;
+
+                const alreadyInQueue = pickupQueue.find(item => item.student.id === selectedStudent.id);
+                
+                if (alreadyInQueue) {
+                    showToast('Student is already in the pickup queue!', 'error');
+                    return;
+                }
+
+                const callData = {
+                    student_id: selectedStudent.id,
+                    student_name: selectedStudent.name,
+                    called_time: new Date().toISOString(),
+                    status: 'called',
+                    security_user: currentUser.name,
+                    notes: `Called from security station at ${new Date().toLocaleTimeString()}`
+                };
+
+                const { data, error } = await supabase
+                    .from('pickup_calls')
+                    .insert([callData])
+                    .select();
+                
+                if (error) {
+                    console.error('Database error details:', error);
+                    showToast(`Database error: ${error.message || 'Failed to record call'}`, 'error');
+                    return;
+                }
+
+                console.log('✅ Call recorded in database:', data[0]);
+
+                const queueItem = {
+                    id: data[0].id,
+                    dbId: data[0].id,
+                    status: 'called',
+                    student: {
+                        id: selectedStudent.id,
+                        name: selectedStudent.name,
+                        class: selectedStudent.class,
+                        photoUrl: selectedStudent.photo_url
+                    },
+                    calledAt: new Date().toLocaleTimeString(),
+                    databaseRecord: data[0]
+                };
+                
+                pickupQueue.push(queueItem);
+                updateQueueDisplay();
+                
+                const searchInput = document.getElementById('studentSearch');
+                if (searchInput) {
+                    searchInput.value = '';
+                }
+                selectedStudent = null;
+                updateCallButton();
+                
+                showToast(`${queueItem.student.name} has been called for pickup`, 'success');
+                updateSessionTime(); // Update session on activity
+            } catch (error) {
+                console.error('Call student error:', error);
+                showToast('Error calling student. Please try again.', 'error');
+            }
+        }
+
+        function updateQueueDisplay() {
+            try {
+                const queueContainer = document.getElementById('pickupQueue');
+                if (!queueContainer) return;
+
+                if (pickupQueue.length === 0) {
+                    queueContainer.innerHTML = '<div class="empty-queue">No pickups in queue</div>';
+                    return;
+                }
+
+                queueContainer.innerHTML = '';
+                
+                pickupQueue.forEach(item => {
+                    const queueElement = document.createElement('div');
+                    queueElement.className = 'queue-item';
+                    
+                    const calledTime = new Date(item.databaseRecord.called_time || item.databaseRecord.created_at);
+                    const timeElapsed = getTimeElapsed(calledTime);
+                    const timeClass = getTimeClass(calledTime);
+                    
+                    queueElement.innerHTML = `
+                        <div class="queue-student-info">
+                            ${item.student.photoUrl ? 
+                                `<img src="${item.student.photoUrl}" alt="${item.student.name}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">` :
+                                `<div class="queue-avatar">${item.student.name.charAt(0)}</div>`
+                            }
+                            <div class="queue-details">
+                                <h4>${item.student.name}</h4>
+                                <p>${item.student.class} • Called at ${item.calledAt}</p>
+                                <p>Status: <span style="${item.status === 'on the way' ? 'color: #dc2626; font-weight: bold;' : ''}">${item.status}</span></p>
+                                <p><span class="time-counter ${timeClass}" data-timestamp="${calledTime.getTime()}">${timeElapsed}</span> elapsed</p>
+                            </div>
+                        </div>
+                        <div class="queue-actions">
+                            <button class="complete-btn" onclick="completePickup(${item.id})">
+                                <i class="fas fa-check"></i> Complete
+                            </button>
+                            <button class="cancel-btn" onclick="cancelPickup(${item.id})">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
+                        </div>
+                    `;
+                    
+                    queueContainer.appendChild(queueElement);
+                });
+                
+                startTimeCounters();
+            } catch (error) {
+                console.error('Queue display error:', error);
+            }
+        }
+
+        // Time counter functions
+        function getTimeElapsed(timestamp) {
+            const now = new Date();
+            const diffMs = now - timestamp;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffSecs = Math.floor((diffMs % 60000) / 1000);
+            
+            if (diffMins > 0) {
+                return `${diffMins}m ${diffSecs}s`;
+            } else {
+                return `${diffSecs}s`;
+            }
+        }
+
+        function getTimeClass(timestamp) {
+            const now = new Date();
+            const diffMs = now - timestamp;
+            const diffMins = Math.floor(diffMs / 60000);
+            
+            if (diffMins >= 5) return 'time-urgent';
+            if (diffMins >= 3) return 'time-warning';
+            return 'time-normal';
+        }
+
+        function startTimeCounters() {
+            const counters = document.querySelectorAll('.time-counter');
+            
+            updateTimeCounters();
+            
+            if (window.timeCounterInterval) {
+                clearInterval(window.timeCounterInterval);
+            }
+            window.timeCounterInterval = setInterval(updateTimeCounters, 1000);
+        }
+
+        function updateTimeCounters() {
+            const counters = document.querySelectorAll('.time-counter');
+            counters.forEach(counter => {
+                const timestamp = new Date(parseInt(counter.dataset.timestamp));
+                const elapsed = getTimeElapsed(timestamp);
+                const timeClass = getTimeClass(timestamp);
+                
+                counter.textContent = elapsed;
+                counter.className = `time-counter ${timeClass}`;
+            });
+        }
+
+        async function completePickup(queueId) {
+            try {
+                const index = pickupQueue.findIndex(item => item.id === queueId);
+                if (index === -1) {
+                    showToast('Pickup record not found', 'error');
+                    return;
+                }
+
+                const queueItem = pickupQueue[index];
+                const student = queueItem.student;
+                
+                const { error } = await supabase
+                    .from('pickup_calls')
+                    .update({ 
+                        status: 'completed',
+                        completed_time: new Date().toISOString()
+                    })
+                    .eq('id', queueId);
+                
+                if (error) {
+                    console.error('Database error:', error);
+                    showToast('Failed to complete pickup in database', 'error');
+                    return;
+                }
+
+                console.log('✅ Pickup completed in database');
+                
+                pickupQueue.splice(index, 1);
+                updateQueueDisplay();
+                
+                showToast(`${student.name} pickup completed`, 'success');
+                updateSessionTime();
+                
+            } catch (error) {
+                console.error('Complete pickup error:', error);
+                showToast('Error completing pickup. Please try again.', 'error');
+            }
+        }
+
+        async function cancelPickup(queueId) {
+            try {
+                const index = pickupQueue.findIndex(item => item.id === queueId);
+                if (index === -1) {
+                    showToast('Pickup record not found', 'error');
+                    return;
+                }
+
+                const queueItem = pickupQueue[index];
+                const student = queueItem.student;
+                
+                const { error } = await supabase
+                    .from('pickup_calls')
+                    .update({ 
+                        status: 'cancelled',
+                        completed_time: new Date().toISOString()
+                    })
+                    .eq('id', queueId);
+                
+                if (error) {
+                    console.error('Database error:', error);
+                    showToast('Failed to cancel pickup in database', 'error');
+                    return;
+                }
+
+                console.log('✅ Pickup cancelled in database');
+                
+                pickupQueue.splice(index, 1);
+                updateQueueDisplay();
+                
+                showToast(`${student.name} pickup cancelled`, 'error');
+                updateSessionTime();
+                
+            } catch (error) {
+                console.error('Cancel pickup error:', error);
+                showToast('Error cancelling pickup. Please try again.', 'error');
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            try {
+                const toast = document.getElementById('toast');
+                const toastMessage = document.getElementById('toastMessage');
+                
+                if (toast && toastMessage) {
+                    toastMessage.textContent = message;
+                    toast.className = `toast ${type} show`;
+                    
+                    setTimeout(() => {
+                        toast.classList.remove('show');
+                    }, 3000);
+                }
+            } catch (error) {
+                console.error('Toast error:', error);
+            }
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                clearAuthentication();
+                showToast('Logged out successfully', 'info');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1000);
+            }
+        }
+    </script>
 </body>
-</html> 
+</html>
