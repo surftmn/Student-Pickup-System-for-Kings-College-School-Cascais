@@ -514,7 +514,10 @@
                 // Step 3: Check if user role matches selected role
                 if (userRole !== selectedRole) {
                     console.error(`❌ Role mismatch: user has '${userRole}', selected '${selectedRole}'`);
-                    showError(`This account is not authorized for ${selectedRole} access. Please select the correct role or use appropriate credentials.`);
+                    const availableRoles = userRole === 'admin' ? 'Admin' : 
+                                         userRole === 'security' ? 'Security' : 
+                                         userRole === 'monitor' ? 'Monitor' : 'Parent';
+                    showError(`Role mismatch! Your account (${email}) has '${availableRoles}' permissions, but you selected '${selectedRole}'. Please select the '${availableRoles}' role tab and try again.`);
                     return;
                 }
 
@@ -566,6 +569,7 @@
             const emailToRole = {
                 'test@test.com': 'admin',
                 'admin@gmail.com': 'admin',
+                'admin@admin.com': 'admin',
                 'security@gmail.com': 'security',
                 'monitor@gmail.com': 'monitor',
                 'parent@gmail.com': 'parent',
@@ -582,6 +586,7 @@
             const emailToName = {
                 'test@test.com': 'Test Admin',
                 'admin@gmail.com': 'Administrator',
+                'admin@admin.com': 'Administrator',
                 'security@gmail.com': 'Security Guard',
                 'monitor@gmail.com': 'Monitor Staff',
                 'parent@gmail.com': 'Parent User',
@@ -593,13 +598,13 @@
         // Helper function to get dashboard page for each role
         function getDashboardPage(role) {
             const roleToPage = {
-                'admin': 'admin-simple.html',
-                'security': 'security-simple.html',
-                'monitor': 'monitor-simple.html',
-                'parent': 'parent-simple.html'
+                'admin': 'admin-dashboard.html',
+                'security': 'security-dashboard.html',
+                'monitor': 'monitor-dashboard.html',
+                'parent': 'parent-dashboard.html'
             };
             
-            return roleToPage[role] || 'parent-simple.html';
+            return roleToPage[role] || 'parent-dashboard.html';
         }
 
         function setLoading(isLoading) {

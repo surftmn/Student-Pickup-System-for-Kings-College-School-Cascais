@@ -1,0 +1,65 @@
+{
+  "name": "kings-pickup-system",
+  "version": "2.0.0",
+  "description": "Kings College School Pickup Management System - Refactored with modular architecture",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx live-server --port=3000 --open=/login.html",
+    "build": "npm run build:css && npm run build:js",
+    "build:css": "npx postcss css/main.css css/components.css css/dashboard.css -o dist/styles.min.css --use autoprefixer cssnano",
+    "build:js": "npx terser js/*.js -o dist/scripts.min.js --compress --mangle",
+    "lint": "npx eslint js/*.js",
+    "lint:fix": "npx eslint js/*.js --fix",
+    "format": "npx prettier --write \"**/*.{html,css,js,json,md}\"",
+    "validate": "npx html-validate *.html",
+    "optimize": "npm run build && npm run optimize:images",
+    "optimize:images": "npx imagemin \"**/*.{jpg,jpeg,png,gif,svg}\" --out-dir=dist/images",
+    "serve": "npx http-server -p 8080 -c-1",
+    "test": "echo \"No tests specified\" && exit 0",
+    "clean": "rm -rf dist/",
+    "prepare": "npm run clean && npm run build"
+  },
+  "keywords": [
+    "school",
+    "pickup",
+    "management",
+    "dashboard",
+    "supabase",
+    "modular",
+    "responsive"
+  ],
+  "author": "Kings College School",
+  "license": "MIT",
+  "devDependencies": {
+    "autoprefixer": "^10.4.16",
+    "cssnano": "^6.0.1",
+    "eslint": "^8.55.0",
+    "html-validate": "^8.7.4",
+    "http-server": "^14.1.1",
+    "imagemin": "^8.0.1",
+    "imagemin-cli": "^7.0.0",
+    "live-server": "^1.2.2",
+    "postcss": "^8.4.32",
+    "postcss-cli": "^11.0.0",
+    "prettier": "^3.1.1",
+    "terser": "^5.26.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead",
+    "not ie 11"
+  ],
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kings-college/pickup-system.git"
+  },
+  "bugs": {
+    "url": "https://github.com/kings-college/pickup-system/issues"
+  },
+  "homepage": "https://github.com/kings-college/pickup-system#readme"
+} 

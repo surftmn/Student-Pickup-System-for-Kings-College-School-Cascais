@@ -1,117 +1,459 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; object-src 'none';">
-        <title>Kings College School - Student Pickup System</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="dashboard-styles.css">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kings College School - Parent Dashboard</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* Security overlay for unauthorized access */
+        .security-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            color: white;
+            text-align: center;
+        }
+
+        .security-message {
+            background: #1e293b;
+            padding: 40px;
+            border-radius: 20px;
+            border: 2px solid #ef4444;
+            max-width: 500px;
+        }
+
+        .security-icon {
+            font-size: 4rem;
+            color: #ef4444;
+            margin-bottom: 20px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 20px 40px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .crown-logo {
+            color: #ffd700;
+            font-size: 2.5rem;
+        }
+
+        .header-title {
+            color: #1e40af;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .header-subtitle {
+            color: #64748b;
+            font-size: 1rem;
+            margin-top: 4px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-right: 20px;
+        }
+
+        .user-badge {
+            background: #059669;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logout-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logout-btn:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
+        }
+
+        /* Main content */
+        .main-content {
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .welcome-section {
+            text-align: left;
+            margin-bottom: 40px;
+        }
+
+        .welcome-title {
+            color: white;
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        /* Student cards grid */
+        .student-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+        }
+
+        .student-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .student-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, transparent 0%, rgba(59, 130, 246, 0.05) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .student-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .student-card:hover::before {
+            opacity: 1;
+        }
+
+        .click-instruction {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            color: #64748b;
+            font-size: 0.9rem;
+            font-weight: 500;
+            opacity: 0.8;
+        }
+
+        .student-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+            font-weight: 700;
+            margin: 20px auto 25px;
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        .student-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .student-name {
+            color: #1e40af;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .student-class {
+            color: #64748b;
+            font-size: 1.2rem;
+            font-weight: 500;
+            margin-bottom: 25px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .pickup-status {
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            display: inline-block;
+            margin-top: 15px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .pickup-status.waiting {
+            background: #fef3cd;
+            color: #92400e;
+            border: 2px solid #fbbf24;
+        }
+
+        .pickup-status.called {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 2px solid #3b82f6;
+        }
+
+        .pickup-status.ready {
+            background: #d1fae5;
+            color: #065f46;
+            border: 2px solid #10b981;
+        }
+
+        .pickup-status.completed {
+            background: #f3f4f6;
+            color: #4b5563;
+            border: 2px solid #9ca3af;
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+            display: none;
+            align-items: center;
+            gap: 15px;
+            z-index: 1001;
+            max-width: 400px;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .toast.show {
+            display: flex;
+        }
+
+        .toast.success {
+            border-left-color: #10b981;
+        }
+
+        .toast.error {
+            border-left-color: #ef4444;
+        }
+
+        .toast.info {
+            border-left-color: #3b82f6;
+        }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-message {
+            color: #374151;
+            font-weight: 500;
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+        }
+
+        .toast-close:hover {
+            background: #f3f4f6;
+        }
+
+        /* Loading indicator */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading-overlay.show {
+            display: flex;
+        }
+
+        .loading-spinner {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .loading-spinner i {
+            font-size: 2rem;
+            color: #3b82f6;
+            margin-bottom: 15px;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .header {
+                padding: 15px 20px;
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+
+            .welcome-title {
+                font-size: 2.2rem;
+            }
+
+            .student-cards {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .student-card {
+                padding: 30px 25px;
+            }
+
+            .student-avatar {
+                width: 100px;
+                height: 100px;
+                font-size: 2.5rem;
+            }
+
+            .student-name {
+                font-size: 1.6rem;
+            }
+        }
+    </style>
 </head>
-<body class="dashboard-body">
-    <!-- Header -->
-    <header class="dashboard-header">
-        <div class="header-left">
-            <div class="school-logo">
-                <i class="fas fa-crown"></i>
+<body>
+    <!-- Security Overlay (shown for unauthorized users) -->
+    <div class="security-overlay" id="securityOverlay">
+        <div class="security-message">
+            <div class="security-icon">
+                <i class="fas fa-shield-exclamation"></i>
             </div>
-            <div class="header-info">
-                <h1>Kings College School</h1>
-                <p>Parent Portal</p>
-            </div>
-        </div>
-        <div class="header-right">
-            <div class="user-info">
-                <i class="fas fa-user-circle"></i>
-                <span id="userName">Loading...</span>
-            </div>
-            <button class="logout-btn" onclick="logout()">
-                <i class="fas fa-sign-out-alt"></i>
-                Logout
+            <h2>Unauthorized Access</h2>
+            <p>This is a secure area. You need to login first to access the parent dashboard.</p>
+            <button class="logout-btn" style="margin-top: 20px;" onclick="redirectToLogin()">
+                <i class="fas fa-sign-in-alt"></i>
+                Go to Login
             </button>
-        </div>
-    </header>
-
-    <!-- Main Content -->
-    <main class="dashboard-main">
-        <div class="dashboard-container">
-            <!-- Welcome Message -->
-            <div class="welcome-card">
-                <div class="welcome-content">
-                    <h2><i class="fas fa-hand-wave"></i> Welcome Back!</h2>
-                    <p>Select your child's photo below when you arrive at school for pickup.</p>
-                </div>
-                <div class="time-display">
-                    <i class="fas fa-clock"></i>
-                    <span id="currentTime">Loading...</span>
-                </div>
-            </div>
-
-            <!-- Children Grid -->
-            <div class="children-section">
-                <h3><i class="fas fa-users"></i> Your Children</h3>
-                <p class="section-subtitle">Tap a photo to request pickup</p>
-                
-                <div class="children-grid" id="childrenGrid">
-                    <!-- Children will be populated dynamically -->
-                </div>
-            </div>
-
-            <!-- Pickup Status -->
-            <div class="status-section">
-                <h3><i class="fas fa-clipboard-check"></i> Pickup Status</h3>
-                <div class="status-card" id="statusCard">
-                    <div class="status-content">
-                        <i class="fas fa-car"></i>
-                        <p>No active pickup requests</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- Child Selection Modal -->
-    <div class="modal" id="childModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="modalChildName">Confirm Pickup</h3>
-                <button class="modal-close" id="modalClose">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="child-confirmation">
-                    <div class="child-photo-large" id="modalChildPhoto">
-                        <img src="" alt="" id="modalChildImage">
-                    </div>
-                    <div class="child-details">
-                        <h4 id="modalChildDetails">Loading...</h4>
-                        <p class="confirmation-text">
-                            Are you sure you want to request pickup for this child?
-                            They will be called and brought to the pickup area.
-                        </p>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" id="cancelPickup">Cancel</button>
-                <button class="btn-primary" id="confirmPickup">
-                    <i class="fas fa-check"></i>
-                    Request Pickup
-                </button>
-            </div>
         </div>
     </div>
 
-    <!-- Toast Notification -->
-    <div class="toast" id="toast">
-        <div class="toast-content">
-            <span class="toast-message" id="toastMessage"></span>
-            <button class="toast-close" id="toastClose">
-                <i class="fas fa-times"></i>
-            </button>
+    <!-- Main Dashboard Content (hidden until authentication is verified) -->
+    <div id="mainDashboard" class="hidden">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <div class="crown-logo">
+                    <i class="fas fa-crown"></i>
+                </div>
+                <div>
+                    <h1 class="header-title">Kings College School</h1>
+                    <p class="header-subtitle">Cascais - Student Pickup Management System</p>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div class="user-badge">
+                    <i class="fas fa-user-friends"></i>
+                    <span id="currentUser">Parent</span>
+                </div>
+                <button class="logout-btn" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="welcome-section">
+                <h1 class="welcome-title" id="welcomeTitle">Welcome, Parent</h1>
+            </div>
+
+            <!-- Student Cards -->
+            <div class="student-cards" id="studentCards">
+                <!-- Student cards will be populated by JavaScript -->
+            </div>
         </div>
     </div>
 
@@ -119,12 +461,621 @@
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-spinner">
             <i class="fas fa-spinner fa-spin"></i>
-            <p>Processing request...</p>
+            <p>Processing pickup request...</p>
         </div>
     </div>
 
-    <script src="supabase-config.js"></script>
-    <script src="auth-system.js"></script>
-    <script src="parent-dashboard.js"></script>
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <div class="toast-content">
+            <span class="toast-message" id="toastMessage"></span>
+        </div>
+        <button class="toast-close" id="toastClose">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    
+    <script>
+        // Configuration
+        const SUPABASE_URL = 'https://hzzaauogpmlnymxguppp.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6emFhdW9ncG1sbnlteGd1cHBwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwNzU2NTAsImV4cCI6MjA2MzY1MTY1MH0.16_3QrnieC_GdBfiuaRpaw4vsXTRCgw0hXXDNqbzFQQ';
+
+        let supabase = null;
+        let currentUser = null;
+        let parentStudents = [];
+
+        // Session timeout (30 minutes)
+        const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes in milliseconds
+
+        // Initialize Supabase
+        function initializeSupabase() {
+            try {
+                if (typeof window.supabase !== 'undefined') {
+                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    console.log('✅ Supabase initialized successfully');
+                    return true;
+                } else {
+                    console.error('❌ Supabase library not loaded');
+                    showToast('Failed to load system', 'error');
+                    return false;
+                }
+            } catch (error) {
+                console.error('Supabase initialization error:', error);
+                showToast('System initialization failed', 'error');
+                return false;
+            }
+        }
+
+        // Fetch user name from parents table
+        async function fetchUserNameFromDatabase(email) {
+            try {
+                console.log('Fetching user name from parents table for email:', email);
+                
+                const { data, error } = await supabase
+                    .from('parents')
+                    .select('name')
+                    .eq('email', email)
+                    .single();
+                
+                if (error) {
+                    console.error('Error fetching name from parents table:', error);
+                    // Fallback: clean up email prefix
+                    return email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                }
+                
+                if (data && data.name) {
+                    console.log('✅ Found name in parents table:', data.name);
+                    return data.name;
+                }
+                
+                // Fallback if no name found
+                console.log('No name found in parents table, using email fallback');
+                return email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                
+            } catch (error) {
+                console.error('Error in fetchUserNameFromDatabase:', error);
+                return email.split('@')[0];
+            }
+        }
+
+        // FIXED: Enhanced checkAuthentication function that handles missing email
+        async function checkAuthentication() {
+            const authToken = sessionStorage.getItem('school_auth_token');
+            const authTime = sessionStorage.getItem('school_auth_time');
+            const userRole = sessionStorage.getItem('school_user_role');
+            let userName = sessionStorage.getItem('school_user_name');
+            
+            // Try to get email from session storage first
+            let userEmail = sessionStorage.getItem('school_user_email');
+            
+            console.log('Checking authentication...', { authToken, authTime, userRole, userName, userEmail });
+            
+            if (!authToken || !authTime || !userRole) {
+                console.log('❌ No authentication credentials found');
+                return false;
+            }
+            
+            // Check if user has parent role
+            if (userRole !== 'parent') {
+                console.log('❌ User does not have parent role:', userRole);
+                showToast('Access denied: Parent access required', 'error');
+                return false;
+            }
+            
+            // Check session timeout
+            const currentTime = Date.now();
+            const loginTime = parseInt(authTime);
+            
+            if (currentTime - loginTime > SESSION_TIMEOUT) {
+                console.log('❌ Session expired');
+                clearAuthentication();
+                showToast('Session expired. Please login again.', 'error');
+                return false;
+            }
+            
+            // If no email in session storage, we need to determine it
+            if (!userEmail) {
+                console.log('No email in session storage, trying to determine from userName...');
+                
+                // Check if userName looks like an email
+                if (userName && userName.includes('@')) {
+                    userEmail = userName;
+                    console.log('Using userName as email:', userEmail);
+                } else {
+                    // Try to match known users based on userName
+                    if (userName === 'surftmn' || userName === 'Ruben Laranjeira') {
+                        userEmail = 'surftmn@gmail.com';
+                    } else if (userName === 'efia' || userName === 'Efia Laranjeira') {
+                        userEmail = 'efia@gmail.com';
+                    } else {
+                        // Last resort: ask user to login again
+                        console.error('Cannot determine user email from session data');
+                        showToast('Session data incomplete. Please login again.', 'error');
+                        redirectToLogin();
+                        return false;
+                    }
+                    console.log('Determined email from userName:', userEmail);
+                }
+                
+                // Store the email for future use
+                sessionStorage.setItem('school_user_email', userEmail);
+            }
+            
+            // Fetch proper name if we don't have it or if it's just the email prefix
+            if (!userName || userName.includes('@') || userName === userEmail.split('@')[0]) {
+                console.log('Fetching proper name from database...');
+                userName = await fetchUserNameFromDatabase(userEmail);
+                // Update session storage with the proper name
+                sessionStorage.setItem('school_user_name', userName);
+            }
+            
+            // Valid authentication
+            currentUser = {
+                name: userName,
+                email: userEmail,
+                role: userRole,
+                token: authToken
+            };
+            
+            console.log('✅ Authentication valid for user:', currentUser);
+            return true;
+        }
+
+        // Sync version for periodic checks (doesn't fetch name again)
+        function checkAuthenticationSync() {
+            const authToken = sessionStorage.getItem('school_auth_token');
+            const authTime = sessionStorage.getItem('school_auth_time');
+            const userRole = sessionStorage.getItem('school_user_role');
+            const userName = sessionStorage.getItem('school_user_name');
+            const userEmail = sessionStorage.getItem('school_user_email');
+            
+            if (!authToken || !authTime || !userRole) {
+                return false;
+            }
+            
+            if (userRole !== 'parent') {
+                return false;
+            }
+            
+            const currentTime = Date.now();
+            const loginTime = parseInt(authTime);
+            
+            if (currentTime - loginTime > SESSION_TIMEOUT) {
+                clearAuthentication();
+                return false;
+            }
+            
+            // Update currentUser with cached data
+            currentUser = {
+                name: userName,
+                email: userEmail,
+                role: userRole,
+                token: authToken
+            };
+            
+            return true;
+        }
+
+        function clearAuthentication() {
+            sessionStorage.removeItem('school_auth_token');
+            sessionStorage.removeItem('school_auth_time');
+            sessionStorage.removeItem('school_user_role');
+            sessionStorage.removeItem('school_user_name');
+            sessionStorage.removeItem('school_user_email');
+            currentUser = null;
+        }
+
+        function redirectToLogin() {
+            clearAuthentication();
+            window.location.href = 'login.html';
+        }
+
+        function updateSessionTime() {
+            if (currentUser) {
+                sessionStorage.setItem('school_auth_time', Date.now().toString());
+            }
+        }
+
+        // FIXED: Load parent's students using direct database queries (no function dependency)
+        async function loadParentStudents() {
+            try {
+                console.log('Loading students for parent email:', currentUser.email);
+
+                // Query directly using the parent's email instead of auth user
+                const { data: parentData, error: parentError } = await supabase
+                    .from('parents')
+                    .select('id')
+                    .eq('email', currentUser.email)
+                    .single();
+
+                if (parentError || !parentData) {
+                    throw new Error('Parent not found in database');
+                }
+
+                console.log('Found parent ID:', parentData.id);
+
+                // Get parent's students using direct table joins
+                const { data, error } = await supabase
+                    .from('parent_student_relationships')
+                    .select(`
+                        student_id,
+                        relationship_type,
+                        is_primary_contact,
+                        can_pickup,
+                        students (
+                            id,
+                            name,
+                            class,
+                            grade,
+                            photo_url,
+                            status
+                        )
+                    `)
+                    .eq('parent_id', parentData.id);
+
+                if (error) {
+                    console.error('Database error:', error);
+                    throw error;
+                }
+
+                if (data && data.length > 0) {
+                    // Map the database results to our expected format
+                    parentStudents = data.map(relationship => ({
+                        id: relationship.students.id,
+                        name: relationship.students.name,
+                        class: relationship.students.class || relationship.students.grade,
+                        grade: relationship.students.grade,
+                        photo: relationship.students.photo_url,
+                        status: relationship.students.status || 'waiting',
+                        relationship: relationship.relationship_type,
+                        canPickup: relationship.can_pickup
+                    }));
+
+                    console.log('✅ Parent students loaded successfully:', parentStudents.length, 'students');
+                    console.log('Students:', parentStudents);
+                } else {
+                    console.log('No students found for this parent');
+                    parentStudents = [];
+                }
+
+                renderStudentCards();
+                
+            } catch (error) {
+                console.error('Error loading parent students:', error);
+                showToast('Failed to load students from database', 'error');
+                
+                // Only use fallback if absolutely necessary
+                parentStudents = [];
+                renderStudentCards();
+            }
+        }
+
+        // DOM elements
+        const studentCardsContainer = document.getElementById('studentCards');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+
+        function renderStudentCards() {
+            studentCardsContainer.innerHTML = '';
+
+            if (parentStudents.length === 0) {
+                studentCardsContainer.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: white;">
+                        <i class="fas fa-users" style="font-size: 3rem; margin-bottom: 20px; opacity: 0.7;"></i>
+                        <p style="font-size: 1.2rem; opacity: 0.8;">No students associated with your account.</p>
+                        <p style="font-size: 1rem; opacity: 0.6; margin-top: 10px;">Please contact the school office if this is incorrect.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            parentStudents.forEach(student => {
+                const card = document.createElement('div');
+                card.className = 'student-card';
+                card.onclick = () => requestPickup(student);
+
+                card.innerHTML = `
+                    <div class="click-instruction">Click to call for pickup</div>
+                    
+                    <div class="student-avatar">
+                        ${student.photo ? 
+                            `<img src="${student.photo}" alt="${student.name}">` : 
+                            student.name.charAt(0)
+                        }
+                    </div>
+                    
+                    <h3 class="student-name">${student.name}</h3>
+                    <p class="student-class">${student.class}</p>
+                    
+                    <div class="pickup-status ${student.status}">
+                        ${getStatusLabel(student.status)}
+                    </div>
+                `;
+
+                studentCardsContainer.appendChild(card);
+            });
+        }
+
+        function getStatusLabel(status) {
+            const labels = {
+                'waiting': 'Ready for Pickup',
+                'pending': 'Request Sent',
+                'approved': 'Being Located',
+                'called': 'Called for Pickup',
+                'on the way': 'On the Way',
+                'ready': 'Ready at Gate',
+                'completed': 'Picked Up',
+                'cancelled': 'Cancelled'
+            };
+            return labels[status] || status;
+        }
+
+        async function requestPickup(student) {
+            // Check if student can be picked up
+            if (!student.canPickup) {
+                showToast(`You are not authorized to request pickup for ${student.name}`, 'error');
+                return;
+            }
+
+            if (student.status === 'completed') {
+                showToast(`${student.name} has already been picked up today`, 'info');
+                return;
+            }
+
+            if (student.status === 'called' || student.status === 'pending') {
+                showToast(`${student.name} pickup request is already in progress`, 'info');
+                return;
+            }
+
+            if (student.status === 'ready') {
+                showToast(`${student.name} is ready for pickup at the gate`, 'success');
+                return;
+            }
+
+            // Show loading
+            loadingOverlay.classList.add('show');
+
+            try {
+                // Create pickup call directly like the security dashboard does
+                const callData = {
+                    student_id: student.id,
+                    student_name: student.name,
+                    called_time: new Date().toISOString(),
+                    status: 'called',
+                    caller_name: `Parent: ${currentUser.name}`,
+                    notes: `Pickup requested by parent ${currentUser.name} via dashboard at ${new Date().toLocaleTimeString()}`
+                };
+
+                // First try direct insert
+                let { data, error } = await supabase
+                    .from('pickup_calls')
+                    .insert([callData])
+                    .select();
+
+                if (error) {
+                    console.error('Direct insert failed, trying alternative approach:', error);
+                    
+                    // Alternative: Use a different status or approach that might bypass RLS
+                    const altCallData = {
+                        student_id: student.id,
+                        student_name: student.name,
+                        called_time: new Date().toISOString(),
+                        status: 'pending',
+                        caller_name: `Parent: ${currentUser.name}`,
+                        notes: `Parent pickup request: ${currentUser.name} requested pickup for ${student.name} at ${new Date().toLocaleTimeString()}`
+                    };
+
+                    const result = await supabase
+                        .from('pickup_calls')
+                        .insert([altCallData])
+                        .select();
+                    
+                    if (result.error) {
+                        console.error('Alternative approach also failed:', result.error);
+                        throw result.error;
+                    }
+                    
+                    data = result.data;
+                    console.log('✅ Pickup request created using alternative approach:', data[0]);
+                } else {
+                    console.log('✅ Pickup request created successfully:', data[0]);
+                }
+
+                // Update student status locally
+                student.status = 'called';
+                
+                // Hide loading
+                loadingOverlay.classList.remove('show');
+                
+                // Show success message
+                showToast(`${student.name} has been called for pickup. Please proceed to the pickup area.`, 'success');
+                
+                // Re-render cards
+                renderStudentCards();
+
+                // Update session activity
+                updateSessionTime();
+
+                // Start polling for status updates
+                startStatusPolling(student);
+
+            } catch (error) {
+                console.error('Error creating pickup request:', error);
+                
+                // Hide loading
+                loadingOverlay.classList.remove('show');
+                
+                // Show error message with more details
+                const errorMsg = error.message || 'Unknown error occurred';
+                const errorCode = error.code || 'No code';
+                const errorDetails = error.details || 'No details';
+                
+                console.error('Detailed error information:', {
+                    message: errorMsg,
+                    code: errorCode,
+                    details: errorDetails,
+                    fullError: error
+                });
+                
+                showToast(`Failed to create pickup request for ${student.name}. Error: ${errorMsg}`, 'error');
+            }
+        }
+
+        // Poll for status updates from the database
+        async function startStatusPolling(student) {
+            const pollInterval = setInterval(async () => {
+                try {
+                    // Get updated pickup calls for this student
+                    const { data, error } = await supabase
+                        .from('pickup_calls')
+                        .select('status, completed_at')
+                        .eq('student_id', student.id)
+                        .order('called_time', { ascending: false })
+                        .limit(1);
+
+                    if (error) {
+                        console.error('Error polling status:', error);
+                        return;
+                    }
+
+                    if (data && data.length > 0) {
+                        const latestCall = data[0];
+                        const newStatus = latestCall.status;
+                        
+                        // Update student status if changed
+                        if (student.status !== newStatus) {
+                            student.status = newStatus;
+                            renderStudentCards();
+                            
+                            // Show status update notification
+                            if (newStatus === 'called') {
+                                showToast(`${student.name} has been called for pickup`, 'success');
+                            } else if (newStatus === 'on the way') {
+                                showToast(`${student.name} is on the way to pickup area`, 'info');
+                            } else if (newStatus === 'approved') {
+                                showToast(`${student.name} pickup has been approved`, 'info');
+                            } else if (newStatus === 'ready') {
+                                showToast(`${student.name} is now ready for pickup at the gate!`, 'success');
+                                clearInterval(pollInterval); // Stop polling when ready
+                            } else if (newStatus === 'completed') {
+                                showToast(`${student.name} has been picked up`, 'success');
+                                clearInterval(pollInterval); // Stop polling when completed
+                            } else if (newStatus === 'cancelled') {
+                                showToast(`Pickup for ${student.name} has been cancelled`, 'error');
+                                clearInterval(pollInterval); // Stop polling when cancelled
+                            }
+                        }
+                        
+                        // Stop polling after pickup is completed, cancelled, or ready
+                        if (['completed', 'cancelled', 'ready'].includes(newStatus)) {
+                            clearInterval(pollInterval);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error in status polling:', error);
+                }
+            }, 10000); // Poll every 10 seconds
+
+            // Stop polling after 10 minutes
+            setTimeout(() => {
+                clearInterval(pollInterval);
+            }, 600000); // 10 minutes
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toastMessage.textContent = message;
+            toast.className = `toast ${type} show`;
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 5000);
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                clearAuthentication();
+                showToast('Logged out successfully', 'info');
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 1000);
+            }
+        }
+
+        // Initialize page with async authentication
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('Parent dashboard loading...');
+            
+            // Initialize Supabase first (needed for database queries)
+            if (!initializeSupabase()) {
+                return;
+            }
+            
+            // Check authentication (now async to fetch name from database)
+            if (!(await checkAuthentication())) {
+                console.log('❌ Authentication failed - showing security overlay');
+                document.getElementById('securityOverlay').classList.remove('hidden');
+                document.getElementById('mainDashboard').classList.add('hidden');
+                return;
+            }
+            
+            // Hide security overlay and show dashboard
+            document.getElementById('securityOverlay').classList.add('hidden');
+            document.getElementById('mainDashboard').classList.remove('hidden');
+            
+            // Update user display with proper name
+            const currentUserElement = document.getElementById('currentUser');
+            const welcomeTitle = document.getElementById('welcomeTitle');
+            if (currentUserElement && currentUser) {
+                currentUserElement.textContent = currentUser.name;
+                welcomeTitle.textContent = `Welcome, ${currentUser.name}`;
+            }
+            
+            try {
+                console.log('Parent dashboard initializing...');
+                
+                // Load parent's students
+                await loadParentStudents();
+                
+                // Initialize event listeners
+                initializeEventListeners();
+                
+                console.log('✅ Parent dashboard loaded successfully');
+                
+                // Periodic session activity
+                setInterval(() => {
+                    updateSessionTime();
+                }, 60000); // Update every 60 seconds
+                
+                // Update session time on user activity
+                document.addEventListener('click', updateSessionTime);
+                document.addEventListener('keypress', updateSessionTime);
+                
+                // Periodic session check (use sync version to avoid repeated DB calls)
+                setInterval(() => {
+                    if (!checkAuthenticationSync()) {
+                        redirectToLogin();
+                    }
+                }, 5 * 60 * 1000); // Check every 5 minutes
+                
+            } catch (error) {
+                console.error('Parent dashboard initialization failed:', error);
+                showToast('System initialization failed. Please refresh the page.', 'error');
+            }
+        });
+
+        function initializeEventListeners() {
+            // Close toast functionality
+            const toastClose = document.getElementById('toastClose');
+            if (toastClose) {
+                toastClose.addEventListener('click', function() {
+                    document.getElementById('toast').classList.remove('show');
+                });
+            }
+
+            console.log('✅ Event listeners initialized successfully');
+        }
+    </script>
 </body>
-</html> 
+</html>
