@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parent Login Test - Kings College School</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .title {
+            color: #1e40af;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #64748b;
+            font-size: 1.2rem;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            color: #1e40af;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .parent-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .parent-card {
+            background: #f8fafc;
+            border: 2px solid #e5e7eb;
+            border-radius: 15px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .parent-card:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.15);
+        }
+
+        .parent-name {
+            color: #1e40af;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .parent-email {
+            color: #3b82f6;
+            font-size: 1rem;
+            margin-bottom: 8px;
+            font-family: monospace;
+        }
+
+        .parent-password {
+            color: #059669;
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            font-family: monospace;
+            background: #d1fae5;
+            padding: 5px 10px;
+            border-radius: 8px;
+        }
+
+        .children-list {
+            margin-top: 10px;
+        }
+
+        .children-title {
+            color: #64748b;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .child-tag {
+            display: inline-block;
+            background: #e0f2fe;
+            color: #0277bd;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            margin: 2px;
+        }
+
+        .login-btn {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .login-btn:hover {
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            transform: translateY(-2px);
+        }
+
+        .instructions {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .instructions-title {
+            color: #92400e;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .instructions-text {
+            color: #92400e;
+            line-height: 1.6;
+        }
+
+        .step {
+            margin: 8px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .step::before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #f59e0b;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="title">
+                <i class="fas fa-crown" style="color: #ffd700;"></i>
+                Kings College School
+            </div>
+            <div class="subtitle">Parent Login Test Accounts</div>
+        </div>
+
+        <div class="instructions">
+            <div class="instructions-title">
+                <i class="fas fa-info-circle"></i>
+                How to Test Parent Login
+            </div>
+            <div class="instructions-text">
+                <div class="step">Go to the login page (login.html)</div>
+                <div class="step">Select the "Parent" role tab</div>
+                <div class="step">Use any email and password combination below</div>
+                <div class="step">Click "Sign In" to test the parent dashboard access</div>
+                <div class="step">You'll see personalized information for that parent's children</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">
+                <i class="fas fa-users"></i>
+                Sample Parent Accounts
+            </div>
+            
+            <div class="parent-grid">
+                <div class="parent-card">
+                    <div class="parent-name">John Smith</div>
+                    <div class="parent-email">john.smith@gmail.com</div>
+                    <div class="parent-password">Password: john1234</div>
+                    <div class="children-list">
+                        <div class="children-title">Children:</div>
+                        <span class="child-tag">Emma Smith</span>
+                        <span class="child-tag">Liam Smith</span>
+                    </div>
+                    <button class="login-btn" onclick="testLogin('john.smith@gmail.com', 'john1234')">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Test Login
+                    </button>
+                </div>
+
+                <div class="parent-card">
+                    <div class="parent-name">Maria Garcia</div>
+                    <div class="parent-email">maria.garcia@gmail.com</div>
+                    <div class="parent-password">Password: maria5678</div>
+                    <div class="children-list">
+                        <div class="children-title">Children:</div>
+                        <span class="child-tag">Sofia Garcia</span>
+                    </div>
+                    <button class="login-btn" onclick="testLogin('maria.garcia@gmail.com', 'maria5678')">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Test Login
+                    </button>
+                </div>
+
+                <div class="parent-card">
+                    <div class="parent-name">David Johnson</div>
+                    <div class="parent-email">david.johnson@gmail.com</div>
+                    <div class="parent-password">Password: david9012</div>
+                    <div class="children-list">
+                        <div class="children-title">Children:</div>
+                        <span class="child-tag">Oliver Johnson</span>
+                        <span class="child-tag">Isabella Johnson</span>
+                    </div>
+                    <button class="login-btn" onclick="testLogin('david.johnson@gmail.com', 'david9012')">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Test Login
+                    </button>
+                </div>
+
+                <div class="parent-card">
+                    <div class="parent-name">Sarah Brown</div>
+                    <div class="parent-email">sarah.brown@gmail.com</div>
+                    <div class="parent-password">Password: sarah3456</div>
+                    <div class="children-list">
+                        <div class="children-title">Children:</div>
+                        <span class="child-tag">Noah Brown</span>
+                    </div>
+                    <button class="login-btn" onclick="testLogin('sarah.brown@gmail.com', 'sarah3456')">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Test Login
+                    </button>
+                </div>
+
+                <div class="parent-card">
+                    <div class="parent-name">Michael Davis</div>
+                    <div class="parent-email">michael.davis@gmail.com</div>
+                    <div class="parent-password">Password: michael7890</div>
+                    <div class="children-list">
+                        <div class="children-title">Children:</div>
+                        <span class="child-tag">Ava Davis</span>
+                        <span class="child-tag">Ethan Davis</span>
+                        <span class="child-tag">Mia Davis</span>
+                    </div>
+                    <button class="login-btn" onclick="testLogin('michael.davis@gmail.com', 'michael7890')">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Test Login
+                    </button>
+                </div>
+
+                <div class="parent-card">
+                    <div class="parent-name">Jennifer Wilson</div>
+                    <div class="parent-email">jennifer.wilson@gmail.com</div>
+                    <div class="parent-password">Password: jennifer1122</div>
+                    <div class="children-list">
+                        <div class="children-title">Children:</div>
+                        <span class="child-tag">Lucas Wilson</span>
+                    </div>
+                    <button class="login-btn" onclick="testLogin('jennifer.wilson@gmail.com', 'jennifer1122')">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Test Login
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">
+                <i class="fas fa-cogs"></i>
+                Admin Access
+            </div>
+            <div style="background: #f0f4f8; padding: 20px; border-radius: 15px;">
+                <p style="color: #64748b; margin-bottom: 15px;">
+                    To access the parent management system and import more accounts:
+                </p>
+                <button class="login-btn" style="max-width: 300px;" onclick="window.location.href='login.html'">
+                    <i class="fas fa-crown"></i>
+                    Login as Super Admin
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function testLogin(email, password) {
+            // Store the test credentials and redirect to login page
+            sessionStorage.setItem('test_email', email);
+            sessionStorage.setItem('test_password', password);
+            
+            window.location.href = 'login.html';
+        }
+
+        // If we're coming back from login page, auto-fill the credentials
+        window.addEventListener('load', function() {
+            const testEmail = sessionStorage.getItem('test_email');
+            const testPassword = sessionStorage.getItem('test_password');
+            
+            if (testEmail && testPassword) {
+                // Clear the test credentials
+                sessionStorage.removeItem('test_email');
+                sessionStorage.removeItem('test_password');
+                
+                // Show a message about the test
+                alert(`Test credentials ready:\nEmail: ${testEmail}\nPassword: ${testPassword}\n\nGo to login.html and select Parent tab to test.`);
+            }
+        });
+    </script>
+</body>
+</html> 

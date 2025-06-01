@@ -46,15 +46,34 @@
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(20px);
             border-radius: 20px 20px 0 0;
-            padding: 40px 20px;
+            padding: 20px 20px;
             text-align: center;
             border-bottom: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .crown-logo {
-            color: #ffd700;
+            color: #64748b;
             font-size: 3rem;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .crown-logo i {
+            transform: translateX(250%);
+            opacity: 0.01;
+        }
+
+        .logo-overlay {
+            position: absolute;
+            top: 120%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            max-width: 320px;
+            max-height: 320px;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            z-index: 10;
         }
 
         .school-title {
@@ -75,7 +94,7 @@
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(20px);
             border-radius: 0 0 20px 20px;
-            padding: 40px;
+            padding: 25px;
             box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
         }
 
@@ -83,26 +102,26 @@
         .role-tabs {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-bottom: 30px;
+            gap: 10px;
+            margin-bottom: 20px;
         }
 
         .role-tab {
             background: #f8fafc;
             border: 2px solid #e2e8f0;
             border-radius: 15px;
-            padding: 20px 15px;
+            padding: 15px 10px;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-size: 1rem;
+            font-size: 0.9rem;
             font-weight: 600;
             color: #64748b;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             text-align: center;
-            min-height: 80px;
+            min-height: 65px;
         }
 
         .role-tab i {
@@ -127,11 +146,11 @@
 
         /* Form styles */
         .login-form {
-            margin-bottom: 25px;
+            margin-bottom: 15px;
         }
 
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 15px;
         }
 
         .form-group label {
@@ -144,10 +163,10 @@
 
         .form-group input {
             width: 100%;
-            padding: 18px 20px;
+            padding: 12px 15px;
             border: 2px solid #e5e7eb;
             border-radius: 15px;
-            font-size: 1.1rem;
+            font-size: 1rem;
             transition: all 0.3s ease;
             background: white;
             color: #374151;
@@ -287,9 +306,9 @@
         <div class="header">
             <div class="crown-logo">
                 <i class="fas fa-crown"></i>
+                <img src="logo do colégio sem fundo maior.png" alt="School Logo" class="logo-overlay">
             </div>
-            <h1 class="school-title">Kings College School</h1>
-            <p class="school-subtitle">Cascais - Student Pickup Management System</p>
+            <p class="school-subtitle" style="margin-top: 100px;">Cascais - Student Pickup Management System</p>
         </div>
 
         <!-- Login Card -->
@@ -301,15 +320,15 @@
             <!-- Role Selection Tabs -->
             <div class="role-tabs">
                 <button class="role-tab active" data-role="parent" id="parentTab">
-                    <i class="fas fa-user-friends"></i>
+                    <i class="fas fa-users"></i>
                     Parent
                 </button>
                 <button class="role-tab" data-role="security" id="securityTab">
-                    <i class="fas fa-shield-alt"></i>
+                    <i class="fas fa-user-shield"></i>
                     Security
                 </button>
                 <button class="role-tab" data-role="monitor" id="monitorTab">
-                    <i class="fas fa-desktop"></i>
+                    <i class="fas fa-chalkboard-teacher"></i>
                     Monitor
                 </button>
                 <button class="role-tab" data-role="admin" id="adminTab">
@@ -482,7 +501,13 @@
             console.log(`🔐 Attempting login for: ${email} as ${selectedRole}`);
 
             try {
-                // Step 1: Authenticate with Supabase
+                // Handle parent login differently - check custom parent table first
+                if (selectedRole === 'parent') {
+                    const parentLoginResult = await handleParentLogin(email, password);
+                    if (parentLoginResult) return; // Successfully logged in as parent
+                }
+
+                // For other roles or if parent login fails, use Supabase auth
                 const { data, error } = await supabase.auth.signInWithPassword({
                     email: email,
                     password: password
@@ -490,7 +515,13 @@
 
                 if (error) {
                     console.error(`❌ Supabase auth error: ${error.message}`);
-                    showError(`Login failed: ${error.message}`);
+                    
+                    // If this is a parent login and Supabase auth failed, show more helpful message
+                    if (selectedRole === 'parent') {
+                        showError(`Parent login failed. Please check your credentials or contact the school administrator.`);
+                    } else {
+                        showError(`Login failed: ${error.message}`);
+                    }
                     return;
                 }
 
@@ -556,6 +587,65 @@
                 showError(`Network error: ${error.message}`);
             } finally {
                 setLoading(false);
+            }
+        }
+
+        // Handle parent login using custom parent table
+        async function handleParentLogin(email, password) {
+            try {
+                console.log('🔍 Checking custom parent table for:', email);
+                
+                // Query the custom parents table
+                const { data: parentData, error } = await supabase
+                    .from('parents')
+                    .select('*')
+                    .eq('email', email)
+                    .single();
+                
+                if (error || !parentData) {
+                    console.log('❌ Parent not found in custom table');
+                    return false; // Let it fall back to Supabase auth
+                }
+                
+                // Check password match
+                if (parentData.password !== password) {
+                    console.log('❌ Password mismatch for parent');
+                    showError('Invalid email or password. Please check your credentials.');
+                    return true; // Don't fall back to Supabase auth
+                }
+                
+                console.log('✅ Parent authentication successful');
+                console.log(`Parent name: ${parentData.name}`);
+                console.log(`Children: ${parentData.children}`);
+                
+                // Create session token and set session storage
+                const sessionToken = generateSessionToken();
+                const currentTime = Date.now().toString();
+                
+                // Set session storage for the dashboard to use
+                sessionStorage.setItem('school_auth_token', sessionToken);
+                sessionStorage.setItem('school_auth_time', currentTime);
+                sessionStorage.setItem('school_user_role', 'parent');
+                sessionStorage.setItem('school_user_name', parentData.name);
+                sessionStorage.setItem('school_user_email', parentData.email);
+                sessionStorage.setItem('school_user_children', JSON.stringify(parentData.children));
+                
+                console.log('✅ Parent session storage set successfully');
+                
+                // Show success message and redirect
+                showSuccess(`Welcome ${parentData.name}! Taking you to the parent dashboard...`);
+                
+                // Automatic redirect after 1.5 seconds
+                setTimeout(() => {
+                    console.log(`🚀 Redirecting to parent dashboard`);
+                    window.location.href = 'parent-dashboard.html';
+                }, 1500);
+                
+                return true; // Successfully handled parent login
+                
+            } catch (error) {
+                console.error('❌ Parent login error:', error);
+                return false; // Let it fall back to Supabase auth
             }
         }
 

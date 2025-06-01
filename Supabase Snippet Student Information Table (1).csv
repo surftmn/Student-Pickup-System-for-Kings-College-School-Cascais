@@ -1,0 +1,12 @@
+column_name,data_type,is_nullable
+id,bigint,NO
+name,text,NO
+email,text,NO
+phone,text,YES
+password_hash,text,YES
+student_ids,ARRAY,YES
+created_at,timestamp with time zone,YES
+updated_at,timestamp with time zone,YES
+auth_user_id,uuid,YES
+relationship,character varying,YES
+password,character varying,YES

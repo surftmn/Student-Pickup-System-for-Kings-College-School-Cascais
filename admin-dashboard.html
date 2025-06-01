@@ -113,66 +113,98 @@
 
             <!-- Action Grid -->
             <div class="action-grid">
-                <!-- Add Student Section -->
-                <div class="add-student-section">
-                    <h2 class="section-title">
-                        <i class="fas fa-user-plus"></i>
-                        Add New Student
-                    </h2>
-
-                    <form id="addStudentForm">
-                        <div class="form-group">
-                            <label for="studentName">Student Name *</label>
-                            <input type="text" id="studentName" required placeholder="Enter full name">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="studentClass">Class *</label>
-                            <input type="text" id="studentClass" required placeholder="e.g., Class 2A, Year 5, etc.">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="studentGrade">Grade (Optional)</label>
-                            <input type="text" id="studentGrade" placeholder="e.g., Grade 2, Year 5, etc.">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="parentContact">Parent Contact *</label>
-                            <input type="text" id="parentContact" required placeholder="e.g., Sarah Johnson - (555) 123-4567">
-                        </div>
-
-                        <div class="form-group">
-                            <label>Student Photo (Optional)</label>
-                            <div class="photo-upload" id="photoUpload">
-                                <input type="file" id="photoInput" accept="image/*">
-                                <div class="upload-content">
-                                    <div class="upload-icon">
-                                        <i class="fas fa-camera"></i>
-                                    </div>
-                                    <div class="upload-text">Click to upload photo</div>
-                                    <div class="upload-subtext">or drag and drop image here</div>
-                                </div>
-                                <img id="photoPreview" class="photo-preview" style="display: none;">
-                            </div>
-                        </div>
-
-                        <button type="submit" class="add-student-btn" id="addStudentBtn">
-                            <i class="fas fa-plus"></i>
-                            Add Student
-                        </button>
-                    </form>
+                <div class="action-card" onclick="showTodaysCalls()">
+                    <div class="action-icon">
+                        <i class="fas fa-phone-alt"></i>
+                    </div>
+                    <h3>Today's Calls</h3>
+                    <p>View all pickup calls made today</p>
                 </div>
 
-                <!-- Recent Activity Section -->
-                <div class="recent-activity-section">
-                    <h2 class="section-title">
-                        <i class="fas fa-clock"></i>
-                        Recent Activity
-                    </h2>
-
-                    <div class="activity-list" id="activityList">
-                        <!-- Activity items will be populated here -->
+                <div class="action-card" onclick="showAllStudents()">
+                    <div class="action-icon">
+                        <i class="fas fa-graduation-cap"></i>
                     </div>
+                    <h3>All Students</h3>
+                    <p>Manage student records</p>
+                </div>
+
+                <div class="action-card" onclick="showSystemStats()">
+                    <div class="action-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <h3>System Statistics</h3>
+                    <p>View detailed system analytics</p>
+                </div>
+                
+                <div class="action-card" onclick="window.open('parent-csv-uploader.html', '_blank')">
+                    <div class="action-icon">
+                        <i class="fas fa-upload"></i>
+                    </div>
+                    <h3>Parent CSV Import</h3>
+                    <p>Import parent data via CSV uploader</p>
+                </div>
+            </div>
+
+            <!-- Add Student Section -->
+            <div class="add-student-section">
+                <h2 class="section-title">
+                    <i class="fas fa-user-plus"></i>
+                    Add New Student
+                </h2>
+
+                <form id="addStudentForm">
+                    <div class="form-group">
+                        <label for="studentName">Student Name *</label>
+                        <input type="text" id="studentName" required placeholder="Enter full name">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="studentClass">Class *</label>
+                        <input type="text" id="studentClass" required placeholder="e.g., Class 2A, Year 5, etc.">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="studentGrade">Grade (Optional)</label>
+                        <input type="text" id="studentGrade" placeholder="e.g., Grade 2, Year 5, etc.">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="parentContact">Parent Contact *</label>
+                        <input type="text" id="parentContact" required placeholder="e.g., Sarah Johnson - (555) 123-4567">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Student Photo (Optional)</label>
+                        <div class="photo-upload" id="photoUpload">
+                            <input type="file" id="photoInput" accept="image/*">
+                            <div class="upload-content">
+                                <div class="upload-icon">
+                                    <i class="fas fa-camera"></i>
+                                </div>
+                                <div class="upload-text">Click to upload photo</div>
+                                <div class="upload-subtext">or drag and drop image here</div>
+                            </div>
+                            <img id="photoPreview" class="photo-preview" style="display: none;">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="add-student-btn" id="addStudentBtn">
+                        <i class="fas fa-plus"></i>
+                        Add Student
+                    </button>
+                </form>
+            </div>
+
+            <!-- Recent Activity Section -->
+            <div class="recent-activity-section">
+                <h2 class="section-title">
+                    <i class="fas fa-clock"></i>
+                    Recent Activity
+                </h2>
+
+                <div class="activity-list" id="activityList">
+                    <!-- Activity items will be populated here -->
                 </div>
             </div>
         </div>

@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parent CSV Uploader - Kings College School</title>
+    <link rel="stylesheet" href="css/admin-dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
+    <script src="js/supabase-config.js"></script>
+    <style>
+        .upload-container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .upload-area {
+            border: 2px dashed #e5e7eb;
+            border-radius: 8px;
+            padding: 40px 20px;
+            text-align: center;
+            background: #f9fafb;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-area:hover {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #3b82f6;
+            background: #dbeafe;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: #9ca3af;
+            margin-bottom: 16px;
+        }
+
+        .upload-text {
+            color: #6b7280;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+
+        .upload-subtext {
+            color: #9ca3af;
+            font-size: 0.9rem;
+        }
+
+        .preview-section {
+            margin: 30px 0;
+            display: none;
+        }
+
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .preview-table th {
+            background: #f3f4f6;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .preview-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+            vertical-align: top;
+        }
+
+        .preview-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .child-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .child-tag {
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .import-options {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .option-group {
+            margin: 15px 0;
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #3b82f6;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .results-section {
+            margin: 30px 0;
+            display: none;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .result-card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #3b82f6;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .result-card.success {
+            border-left-color: #10b981;
+        }
+
+        .result-card.warning {
+            border-left-color: #f59e0b;
+        }
+
+        .result-card.error {
+            border-left-color: #ef4444;
+        }
+
+        .result-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .result-details {
+            color: #6b7280;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+    <div class="upload-container">
+        <div class="header-section">
+            <h1><i class="fas fa-upload"></i> Parent CSV Uploader</h1>
+            <p>Upload a CSV file with parent information to automatically create parent accounts and link them to their children.</p>
+        </div>
+
+        <!-- CSV Format Instructions -->
+        <div class="info-card">
+            <h3><i class="fas fa-info-circle"></i> CSV Format Requirements</h3>
+            <p>Your CSV file must have exactly 3 columns in this order:</p>
+            <div class="format-example">
+                <code>
+                    Parent Name,Email,Child Names<br>
+                    John Smith,john.smith@gmail.com,Emma Smith;Liam Smith<br>
+                    Maria Garcia,maria.garcia@gmail.com,Sofia Garcia
+                </code>
+            </div>
+            <ul>
+                <li><strong>Column 1:</strong> Parent's full name</li>
+                <li><strong>Column 2:</strong> Parent's email address (used for login)</li>
+                <li><strong>Column 3:</strong> Child names separated by semicolons (;)</li>
+            </ul>
+        </div>
+
+        <!-- File Upload Area -->
+        <div class="upload-area" id="uploadArea">
+            <i class="fas fa-cloud-upload-alt upload-icon"></i>
+            <div class="upload-text">Drop your CSV file here or click to browse</div>
+            <div class="upload-subtext">Supports CSV files up to 10MB</div>
+            <input type="file" id="csvFileInput" class="file-input" accept=".csv" />
+        </div>
+
+        <!-- Preview Section -->
+        <div class="preview-section" id="previewSection">
+            <h3><i class="fas fa-eye"></i> CSV Preview</h3>
+            <div id="previewContent"></div>
+        </div>
+
+        <!-- Import Options -->
+        <div class="import-options" id="importOptions" style="display: none;">
+            <h3><i class="fas fa-cog"></i> Import Options</h3>
+            
+            <div class="option-group">
+                <div class="checkbox-wrapper">
+                    <input type="checkbox" id="autoGeneratePasswords" checked>
+                    <label for="autoGeneratePasswords">Auto-generate passwords (email prefix + 4 digits)</label>
+                </div>
+                <small class="text-muted">Example: john.smith@gmail.com → john1234</small>
+            </div>
+
+            <div class="option-group">
+                <div class="checkbox-wrapper">
+                    <input type="checkbox" id="createMissingStudents">
+                    <label for="createMissingStudents">Create missing students automatically</label>
+                </div>
+                <small class="text-muted">Students not found in database will be created with basic info</small>
+            </div>
+
+            <div class="option-group">
+                <div class="checkbox-wrapper">
+                    <input type="checkbox" id="sendEmailNotifications">
+                    <label for="sendEmailNotifications">Send email notifications to parents (Coming Soon)</label>
+                </div>
+                <small class="text-muted">Parents will receive their login credentials via email</small>
+            </div>
+
+            <button class="btn-primary" id="processImportBtn">
+                <i class="fas fa-play"></i>
+                Process Import
+            </button>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-section" id="progressSection" style="display: none;">
+            <h3><i class="fas fa-spinner fa-spin"></i> Processing Import...</h3>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div id="progressText">Preparing import...</div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-section" id="resultsSection">
+            <h3><i class="fas fa-check-circle"></i> Import Results</h3>
+            <div class="results-grid" id="resultsGrid"></div>
+        </div>
+
+        <!-- Student Creation Modal -->
+        <div class="modal" id="createStudentModal" style="display: none; z-index: 10000;">
+            <div class="modal-content" style="max-width: 500px;">
+                <div class="modal-header">
+                    <h2 style="color: #1e40af; margin: 0;">
+                        <i class="fas fa-user-plus"></i>
+                        Create Missing Student
+                    </h2>
+                </div>
+                <div class="modal-body">
+                    <div style="background: #fef3c7; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #f59e0b;">
+                        <p style="margin: 0; color: #92400e;">
+                            <i class="fas fa-exclamation-triangle" style="margin-right: 8px;"></i>
+                            Student "<strong id="missingStudentName"></strong>" was not found in the database.
+                        </p>
+                        <p style="margin: 8px 0 0 0; color: #92400e; font-size: 0.9rem;">
+                            Would you like to create this student now?
+                        </p>
+                    </div>
+
+                    <form id="createStudentForm" style="space-y: 15px;">
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 5px;">
+                                Student Name *
+                            </label>
+                            <input type="text" id="newStudentName" readonly style="
+                                width: 100%; 
+                                padding: 10px; 
+                                border: 2px solid #e5e7eb; 
+                                border-radius: 6px; 
+                                background: #f9fafb; 
+                                color: #6b7280;
+                            ">
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 5px;">
+                                Class *
+                            </label>
+                            <input type="text" id="newStudentClass" required placeholder="e.g., Class 2A, Year 5, etc." style="
+                                width: 100%; 
+                                padding: 10px; 
+                                border: 2px solid #e5e7eb; 
+                                border-radius: 6px;
+                            ">
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 5px;">
+                                Grade (Optional)
+                            </label>
+                            <input type="text" id="newStudentGrade" placeholder="e.g., Grade 2, Year 5, etc." style="
+                                width: 100%; 
+                                padding: 10px; 
+                                border: 2px solid #e5e7eb; 
+                                border-radius: 6px;
+                            ">
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 5px;">
+                                Student Photo (Optional)
+                            </label>
+                            <div class="photo-upload" id="newStudentPhotoUpload" style="
+                                border: 2px dashed #e5e7eb; 
+                                border-radius: 8px; 
+                                padding: 20px; 
+                                text-align: center; 
+                                cursor: pointer; 
+                                transition: all 0.3s ease;
+                                background: #f9fafb;
+                            ">
+                                <input type="file" id="newStudentPhotoInput" accept="image/*" style="display: none;">
+                                <div class="upload-content" id="newStudentUploadContent">
+                                    <div style="color: #9ca3af; font-size: 2rem; margin-bottom: 8px;">
+                                        <i class="fas fa-camera"></i>
+                                    </div>
+                                    <div style="color: #6b7280;">Click to upload photo</div>
+                                    <div style="color: #9ca3af; font-size: 0.8rem; margin-top: 4px;">or drag and drop image here</div>
+                                </div>
+                                <img id="newStudentPhotoPreview" style="display: none; max-width: 100%; max-height: 150px; border-radius: 6px;">
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 15px;">
+                            <button type="button" id="skipStudentBtn" style="
+                                flex: 1; 
+                                background: #6b7280; 
+                                color: white; 
+                                border: none; 
+                                padding: 12px 20px; 
+                                border-radius: 8px; 
+                                font-size: 1rem; 
+                                cursor: pointer; 
+                                font-weight: 500;
+                            ">
+                                <i class="fas fa-times"></i> Skip Student
+                            </button>
+                            <button type="submit" id="createStudentSubmitBtn" style="
+                                flex: 1; 
+                                background: #10b981; 
+                                color: white; 
+                                border: none; 
+                                padding: 12px 20px; 
+                                border-radius: 8px; 
+                                font-size: 1rem; 
+                                cursor: pointer; 
+                                font-weight: 500;
+                            ">
+                                <i class="fas fa-plus"></i> Create Student
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Supabase
+        const SUPABASE_URL = 'https://hzzaauogpmlnymxguppp.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6emFhdW9ncG1sbnlteGd1cHBwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwNzU2NTAsImV4cCI6MjA2MzY1MTY1MH0.16_3QrnieC_GdBfiuaRpaw4vsXTRCgw0hXXDNqbzFQQ';
+
+        let supabase;
+
+        // Initialize Supabase client
+        function initializeSupabase() {
+            try {
+                if (typeof window.supabase !== 'undefined') {
+                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    console.log('✅ Supabase initialized successfully in CSV uploader');
+                    return true;
+                } else {
+                    console.error('❌ Supabase library not loaded');
+                    showToast('Failed to load system', 'error');
+                    return false;
+                }
+            } catch (error) {
+                console.error('Supabase initialization error:', error);
+                showToast('System initialization failed', 'error');
+                return false;
+            }
+        }
+
+        let csvData = [];
+        let studentsData = [];
+        let missingStudents = [];
+        let currentMissingStudentIndex = 0;
+        let newStudentPhotoFile = null;
+        let studentCreationResolver = null;
+
+        // Initialize upload functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Supabase first
+            if (!initializeSupabase()) {
+                showToast('Failed to initialize system. Please refresh the page.', 'error');
+                return;
+            }
+            
+            loadExistingStudents();
+            setupUploadHandlers();
+            setupStudentCreationHandlers();
+        });
+
+        // Load existing students for matching
+        async function loadExistingStudents() {
+            try {
+                const { data, error } = await supabase
+                    .from('students')
+                    .select('id, name, class, grade');
+                
+                if (error) throw error;
+                studentsData = data || [];
+                console.log('Loaded', studentsData.length, 'students for matching');
+            } catch (error) {
+                console.error('Error loading students:', error);
+                showToast('Failed to load student data', 'error');
+            }
+        }
+
+        // Setup file upload handlers
+        function setupUploadHandlers() {
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('csvFileInput');
+
+            // Click to upload
+            uploadArea.addEventListener('click', () => fileInput.click());
+
+            // Drag and drop
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFile(files[0]);
+                }
+            });
+
+            // File input change
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleFile(e.target.files[0]);
+                }
+            });
+
+            // Process import button
+            document.getElementById('processImportBtn').addEventListener('click', processImport);
+        }
+
+        // Handle file upload
+        function handleFile(file) {
+            if (!file.name.endsWith('.csv')) {
+                showToast('Please select a CSV file', 'error');
+                return;
+            }
+
+            if (file.size > 10 * 1024 * 1024) { // 10MB limit
+                showToast('File size must be less than 10MB', 'error');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                parseCSV(e.target.result);
+            };
+            reader.readAsText(file);
+        }
+
+        // Parse CSV content
+        function parseCSV(csvContent) {
+            const lines = csvContent.split('\n').filter(line => line.trim());
+            if (lines.length < 2) {
+                showToast('CSV file must have at least a header and one data row', 'error');
+                return;
+            }
+
+            const headers = lines[0].split(',').map(h => h.trim());
+            if (headers.length !== 3 || 
+                !headers[0].toLowerCase().includes('name') ||
+                !headers[1].toLowerCase().includes('email') ||
+                !headers[2].toLowerCase().includes('child')) {
+                showToast('CSV must have exactly 3 columns: Parent Name, Email, Child Names', 'error');
+                return;
+            }
+
+            csvData = [];
+            for (let i = 1; i < lines.length; i++) {
+                const columns = lines[i].split(',').map(c => c.trim());
+                if (columns.length >= 3) {
+                    const childrenNames = columns[2].split(';').map(name => name.trim()).filter(name => name);
+                    csvData.push({
+                        parentName: columns[0],
+                        email: columns[1],
+                        childrenNames: childrenNames,
+                        rowNumber: i + 1
+                    });
+                }
+            }
+
+            if (csvData.length === 0) {
+                showToast('No valid data rows found in CSV', 'error');
+                return;
+            }
+
+            showPreview();
+            document.getElementById('importOptions').style.display = 'block';
+        }
+
+        // Show CSV preview with student matching
+        function showPreview() {
+            const previewSection = document.getElementById('previewSection');
+            const previewContent = document.getElementById('previewContent');
+
+            let tableHTML = `
+                <table class="preview-table">
+                    <thead>
+                        <tr>
+                            <th>Parent Name</th>
+                            <th>Email</th>
+                            <th>Children</th>
+                            <th>Match Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            csvData.forEach(row => {
+                const matchResults = matchChildrenToStudents(row.childrenNames);
+                const statusClass = matchResults.allMatched ? 'success' : 
+                                   matchResults.someMatched ? 'warning' : 'error';
+                
+                const statusText = matchResults.allMatched ? 'All children found' :
+                                  matchResults.someMatched ? `${matchResults.matched.length}/${row.childrenNames.length} found` :
+                                  'No children found';
+
+                tableHTML += `
+                    <tr>
+                        <td>${row.parentName}</td>
+                        <td>${row.email}</td>
+                        <td>
+                            <div class="child-list">
+                                ${row.childrenNames.map(name => {
+                                    const isMatched = matchResults.matched.some(m => m.inputName === name);
+                                    return `<span class="child-tag ${isMatched ? 'status-success' : 'status-error'}">${name}</span>`;
+                                }).join('')}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="status-indicator status-${statusClass}">
+                                <i class="fas fa-${matchResults.allMatched ? 'check' : matchResults.someMatched ? 'exclamation-triangle' : 'times'}"></i>
+                                ${statusText}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tableHTML += '</tbody></table>';
+            previewContent.innerHTML = tableHTML;
+            previewSection.style.display = 'block';
+        }
+
+        // Match children names to existing students
+        function matchChildrenToStudents(childrenNames) {
+            const matched = [];
+            const unmatched = [];
+
+            childrenNames.forEach(name => {
+                const student = studentsData.find(s => 
+                    s.name.toLowerCase().trim() === name.toLowerCase().trim()
+                );
+                
+                if (student) {
+                    matched.push({ inputName: name, student: student });
+                } else {
+                    unmatched.push(name);
+                }
+            });
+
+            return {
+                matched,
+                unmatched,
+                allMatched: unmatched.length === 0,
+                someMatched: matched.length > 0 && unmatched.length > 0
+            };
+        }
+
+        // Process the import with student creation support
+        async function processImport() {
+            // Check if "Create missing students automatically" is checked
+            const createMissing = document.getElementById('createMissingStudents').checked;
+            
+            if (createMissing) {
+                // Find all missing students first
+                const allMissingStudents = [];
+                csvData.forEach(row => {
+                    const matchResults = matchChildrenToStudents(row.childrenNames);
+                    matchResults.unmatched.forEach(studentName => {
+                        if (!allMissingStudents.includes(studentName)) {
+                            allMissingStudents.push(studentName);
+                        }
+                    });
+                });
+
+                if (allMissingStudents.length > 0) {
+                    missingStudents = allMissingStudents;
+                    currentMissingStudentIndex = 0;
+                    
+                    showToast(`Found ${missingStudents.length} missing students. Please create them first.`, 'info');
+                    await processStudentCreation();
+                    
+                    // Reload students data after creation
+                    await loadExistingStudents();
+                }
+            }
+            
+            // Continue with normal import process
+            await processImportWithDatabase();
+        }
+
+        // Process student creation sequentially
+        async function processStudentCreation() {
+            return new Promise((resolve) => {
+                if (currentMissingStudentIndex >= missingStudents.length) {
+                    resolve();
+                    return;
+                }
+                
+                studentCreationResolver = resolve;
+                showStudentCreationModal(missingStudents[currentMissingStudentIndex]);
+            });
+        }
+
+        // Show student creation modal
+        function showStudentCreationModal(studentName) {
+            const modal = document.getElementById('createStudentModal');
+            const missingStudentNameEl = document.getElementById('missingStudentName');
+            const newStudentNameEl = document.getElementById('newStudentName');
+            
+            // Reset form
+            document.getElementById('createStudentForm').reset();
+            document.getElementById('newStudentClass').value = '';
+            document.getElementById('newStudentGrade').value = '';
+            newStudentPhotoFile = null;
+            
+            // Reset photo preview
+            const preview = document.getElementById('newStudentPhotoPreview');
+            const uploadContent = document.getElementById('newStudentUploadContent');
+            if (preview && uploadContent) {
+                preview.style.display = 'none';
+                uploadContent.style.display = 'block';
+            }
+            
+            // Set student name
+            missingStudentNameEl.textContent = studentName;
+            newStudentNameEl.value = studentName;
+            
+            // Show modal
+            modal.style.display = 'flex';
+            
+            // Focus on class input
+            setTimeout(() => {
+                document.getElementById('newStudentClass').focus();
+            }, 100);
+        }
+
+        // Handle create student form submission
+        async function handleCreateStudent(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('createStudentSubmitBtn');
+            const originalText = submitBtn.innerHTML;
+            
+            try {
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+                submitBtn.disabled = true;
+                
+                const studentName = document.getElementById('newStudentName').value.trim();
+                const studentClass = document.getElementById('newStudentClass').value.trim();
+                const studentGrade = document.getElementById('newStudentGrade').value.trim();
+                
+                if (!studentClass) {
+                    throw new Error('Class is required');
+                }
+                
+                // Prepare student data
+                const studentData = {
+                    name: studentName,
+                    class: studentClass,
+                    grade: studentGrade || null,
+                    parent_contact: 'Added via CSV import',
+                    photo_url: null,
+                    created_at: new Date().toISOString()
+                };
+                
+                // Handle photo upload if there's a file
+                if (newStudentPhotoFile) {
+                    // For demo purposes, we'll set a placeholder URL
+                    // In a real implementation, you'd upload to Supabase Storage
+                    studentData.photo_url = URL.createObjectURL(newStudentPhotoFile);
+                }
+                
+                // Insert into database
+                const { data, error } = await supabase
+                    .from('students')
+                    .insert([studentData])
+                    .select();
+                    
+                if (error) throw error;
+                
+                console.log('✅ Student created successfully:', data[0]);
+                showToast(`${studentName} created successfully!`, 'success');
+                
+                // Add to local students data
+                studentsData.push(data[0]);
+                
+                // Close modal and continue
+                document.getElementById('createStudentModal').style.display = 'none';
+                currentMissingStudentIndex++;
+                
+                if (currentMissingStudentIndex < missingStudents.length) {
+                    // Show next student
+                    setTimeout(() => {
+                        showStudentCreationModal(missingStudents[currentMissingStudentIndex]);
+                    }, 500);
+                } else {
+                    // All students created, resolve the promise
+                    if (studentCreationResolver) {
+                        studentCreationResolver();
+                        studentCreationResolver = null;
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Error creating student:', error);
+                showToast(`Failed to create student: ${error.message}`, 'error');
+            } finally {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        }
+
+        // Skip current student creation
+        function skipCurrentStudent() {
+            console.log('Skipping student:', missingStudents[currentMissingStudentIndex]);
+            showToast(`Skipped creating ${missingStudents[currentMissingStudentIndex]}`, 'info');
+            
+            document.getElementById('createStudentModal').style.display = 'none';
+            currentMissingStudentIndex++;
+            
+            if (currentMissingStudentIndex < missingStudents.length) {
+                // Show next student
+                setTimeout(() => {
+                    showStudentCreationModal(missingStudents[currentMissingStudentIndex]);
+                }, 500);
+            } else {
+                // All students processed, resolve the promise
+                if (studentCreationResolver) {
+                    studentCreationResolver();
+                    studentCreationResolver = null;
+                }
+            }
+        }
+
+        // Original database processing function (renamed)
+        async function processImportWithDatabase() {
+            const progressSection = document.getElementById('progressSection');
+            const resultsSection = document.getElementById('resultsSection');
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            const resultsGrid = document.getElementById('resultsGrid');
+            
+            const autoGenerate = document.getElementById('autoGeneratePasswords').checked;
+
+            progressSection.style.display = 'block';
+            resultsSection.style.display = 'none';
+            resultsGrid.innerHTML = '';
+
+            const results = [];
+
+            try {
+                progressText.textContent = 'Preparing CSV data...';
+                progressFill.style.width = '20%';
+
+                // Prepare CSV data for the database function
+                const csvDataForDB = csvData.map(row => ({
+                    parent_name: row.parentName,
+                    email: row.email,
+                    children_names: row.childrenNames.join(';') // Join with semicolon as expected by function
+                }));
+
+                console.log('Sending CSV data to process_parent_csv_import:', csvDataForDB);
+
+                progressText.textContent = 'Processing import with database...';
+                progressFill.style.width = '60%';
+
+                // Call our custom database function
+                const { data, error } = await supabase.rpc('process_parent_csv_import', {
+                    csv_data: csvDataForDB
+                });
+
+                if (error) {
+                    console.error('Database function error:', error);
+                    throw error;
+                }
+
+                console.log('✅ Import successful, results:', data);
+
+                progressText.textContent = 'Processing results...';
+                progressFill.style.width = '90%';
+
+                // Process the results from the database function
+                if (data && Array.isArray(data)) {
+                    data.forEach(result => {
+                        const matchResults = matchChildrenToStudents(result.children_names ? result.children_names.split(';') : []);
+                        
+                        results.push({
+                            type: result.success ? 'success' : 'error',
+                            parentName: result.parent_name,
+                            email: result.email,
+                            password: result.generated_password,
+                            matchedChildren: result.matched_student_ids ? result.matched_student_ids.length : 0,
+                            totalChildren: result.children_names ? result.children_names.split(';').length : 0,
+                            message: result.message || (result.success ? 'Successfully created parent account.' : 'Failed to create parent account.'),
+                            studentIds: result.matched_student_ids || []
+                        });
+                    });
+                } else {
+                    // Fallback if data structure is unexpected
+                    results.push({
+                        type: 'success',
+                        message: `Successfully processed ${csvData.length} parent records.`
+                    });
+                }
+
+                progressText.textContent = 'Import completed successfully!';
+                progressFill.style.width = '100%';
+
+            } catch (error) {
+                console.error('Import error:', error);
+                
+                let errorMessage = 'Import failed';
+                if (error.message) {
+                    errorMessage += `: ${error.message}`;
+                } else if (error.details) {
+                    errorMessage += `: ${error.details}`;
+                }
+                
+                results.push({
+                    type: 'error',
+                    message: errorMessage
+                });
+
+                progressText.textContent = 'Import failed!';
+                progressFill.style.width = '100%';
+                progressFill.style.background = '#ef4444';
+            }
+
+            // Show results after a brief delay
+            setTimeout(() => {
+                displayResults(results);
+                progressSection.style.display = 'none';
+                resultsSection.style.display = 'block';
+            }, 1000);
+        }
+
+        // Generate password from email
+        function generatePassword(email) {
+            const prefix = email.split('@')[0].split('.')[0];
+            const digits = Math.floor(1000 + Math.random() * 9000);
+            return prefix + digits;
+        }
+
+        // Display import results
+        function displayResults(results) {
+            const resultsGrid = document.getElementById('resultsGrid');
+            
+            // Ensure results is an array
+            if (!results || !Array.isArray(results)) {
+                console.error('Invalid results data:', results);
+                results = [{
+                    type: 'error',
+                    message: 'Invalid results data received'
+                }];
+            }
+            
+            results.forEach(result => {
+                const card = document.createElement('div');
+                card.className = `result-card ${result.type}`;
+                
+                let icon = 'check-circle';
+                if (result.type === 'warning') icon = 'exclamation-triangle';
+                if (result.type === 'error') icon = 'times-circle';
+
+                card.innerHTML = `
+                    <div class="result-title">
+                        <i class="fas fa-${icon}"></i>
+                        ${result.parentName || 'Import Status'}
+                    </div>
+                    <div class="result-details">
+                        ${result.email ? `<strong>Email:</strong> ${result.email}<br>` : ''}
+                        ${result.password ? `<strong>Password:</strong> ${result.password}<br>` : ''}
+                        ${result.matchedChildren !== undefined ? `<strong>Children Linked:</strong> ${result.matchedChildren}/${result.totalChildren}<br>` : ''}
+                        ${result.studentIds && result.studentIds.length > 0 ? `<strong>Student IDs:</strong> ${result.studentIds.join(', ')}<br>` : ''}
+                        <br>${result.message || 'No message available'}
+                    </div>
+                `;
+                
+                resultsGrid.appendChild(card);
+            });
+
+            // Summary
+            const successCount = results.filter(r => r.type === 'success').length;
+            const totalCount = results.length;
+            
+            if (successCount > 0) {
+                showToast(`Import completed: ${successCount}/${totalCount} parents processed successfully!`, 'success');
+            } else {
+                showToast(`Import failed: No parents were processed successfully.`, 'error');
+            }
+        }
+
+        // Toast notification function
+        function showToast(message, type = 'info') {
+            // Create toast element
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'error' ? '#ef4444' : type === 'success' ? '#10b981' : '#3b82f6'};
+                color: white;
+                padding: 12px 20px;
+                border-radius: 6px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                z-index: 1000;
+                animation: slideIn 0.3s ease;
+            `;
+            toast.textContent = message;
+            
+            document.body.appendChild(toast);
+            
+            // Auto remove
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease forwards';
+                setTimeout(() => toast.remove(), 300);
+            }, 5000);
+        }
+
+        // Add CSS animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Setup student creation modal handlers
+        function setupStudentCreationHandlers() {
+            // Photo upload handling
+            const photoInput = document.getElementById('newStudentPhotoInput');
+            const photoUpload = document.getElementById('newStudentPhotoUpload');
+            
+            if (photoInput && photoUpload) {
+                photoUpload.addEventListener('click', () => photoInput.click());
+                photoInput.addEventListener('change', handleNewStudentPhotoUpload);
+            }
+
+            // Form submission
+            const createStudentForm = document.getElementById('createStudentForm');
+            if (createStudentForm) {
+                createStudentForm.addEventListener('submit', handleCreateStudent);
+            }
+
+            // Skip button
+            const skipBtn = document.getElementById('skipStudentBtn');
+            if (skipBtn) {
+                skipBtn.addEventListener('click', skipCurrentStudent);
+            }
+        }
+
+        // Handle photo upload for new student
+        function handleNewStudentPhotoUpload(e) {
+            const file = e.target.files[0];
+            if (file) {
+                newStudentPhotoFile = file;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('newStudentPhotoPreview');
+                    const uploadContent = document.getElementById('newStudentUploadContent');
+                    if (preview && uploadContent) {
+                        preview.src = e.target.result;
+                        preview.style.display = 'block';
+                        uploadContent.style.display = 'none';
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+    </script>
+</body>
+</html>

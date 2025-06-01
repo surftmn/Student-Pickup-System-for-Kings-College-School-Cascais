@@ -681,37 +681,10 @@
             try {
                 console.log('Loading students for parent email:', currentUser.email);
 
-                // Query directly using the parent's email instead of auth user
-                const { data: parentData, error: parentError } = await supabase
-                    .from('parents')
-                    .select('id')
-                    .eq('email', currentUser.email)
-                    .single();
-
-                if (parentError || !parentData) {
-                    throw new Error('Parent not found in database');
-                }
-
-                console.log('Found parent ID:', parentData.id);
-
-                // Get parent's students using direct table joins
-                const { data, error } = await supabase
-                    .from('parent_student_relationships')
-                    .select(`
-                        student_id,
-                        relationship_type,
-                        is_primary_contact,
-                        can_pickup,
-                        students (
-                            id,
-                            name,
-                            class,
-                            grade,
-                            photo_url,
-                            status
-                        )
-                    `)
-                    .eq('parent_id', parentData.id);
+                // Use our custom function to get parent's children details
+                const { data, error } = await supabase.rpc('get_parent_children_details', {
+                    parent_email: currentUser.email
+                });
 
                 if (error) {
                     console.error('Database error:', error);
@@ -720,15 +693,15 @@
 
                 if (data && data.length > 0) {
                     // Map the database results to our expected format
-                    parentStudents = data.map(relationship => ({
-                        id: relationship.students.id,
-                        name: relationship.students.name,
-                        class: relationship.students.class || relationship.students.grade,
-                        grade: relationship.students.grade,
-                        photo: relationship.students.photo_url,
-                        status: relationship.students.status || 'waiting',
-                        relationship: relationship.relationship_type,
-                        canPickup: relationship.can_pickup
+                    parentStudents = data.map(student => ({
+                        id: student.student_id,
+                        name: student.student_name,
+                        class: student.student_class,
+                        grade: student.student_grade,
+                        photo: student.student_photo_url,
+                        status: student.student_status || 'waiting',
+                        relationship: 'parent', // Default since we don't track different relationship types
+                        canPickup: true // Default to true for all parents
                     }));
 
                     console.log('✅ Parent students loaded successfully:', parentStudents.length, 'students');
