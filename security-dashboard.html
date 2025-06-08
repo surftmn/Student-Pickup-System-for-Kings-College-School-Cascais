@@ -706,7 +706,7 @@
 
         function redirectToLogin() {
             clearAuthentication();
-            window.location.href = 'index.html';
+            window.location.href = 'login.html';
         }
 
         function updateSessionTime() {
@@ -1363,7 +1363,7 @@
                 clearAuthentication();
                 showToast('Logged out successfully', 'info');
                 setTimeout(() => {
-                    window.location.href = 'index.html';
+                    window.location.href = 'login.html';
                 }, 1000);
             }
         }

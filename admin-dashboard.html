@@ -6,6 +6,7 @@
     <title>Kings College School - Admin Dashboard</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="css/admin-dashboard.css" rel="stylesheet">
+    <link href="css/enhanced-pickup-notifications.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -129,6 +130,15 @@
                     <p>Manage student records</p>
                 </div>
 
+                <div class="action-card" onclick="showPickupNotifications()">
+                    <div class="action-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <h3>Email Pickups</h3>
+                    <p>View and manage pickup email notifications</p>
+                    <div class="notification-badge" id="pickupNotificationBadge" style="display: none;">0</div>
+                </div>
+
                 <div class="action-card" onclick="showSystemStats()">
                     <div class="action-icon">
                         <i class="fas fa-chart-bar"></i>
@@ -194,6 +204,63 @@
                         Add Student
                     </button>
                 </form>
+            </div>
+
+            <!-- Pickup Email Notifications Section -->
+            <div class="enhanced-pickup-notifications-section" id="pickupNotificationsSection" style="display: none;">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-envelope"></i>
+                        Email Pickup Notifications
+                    </h2>
+                    <button class="close-section-btn" onclick="hidePickupNotifications()">
+                        <i class="fas fa-times"></i>
+                        Close
+                    </button>
+                </div>
+                
+                <div class="pickup-notifications-stats">
+                    <div class="stat-item">
+                        <div class="stat-icon pending">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-number" id="pendingNotifications">0</div>
+                            <div class="stat-label">Pending</div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon approved">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-number" id="approvedNotifications">0</div>
+                            <div class="stat-label">Approved</div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon progress">
+                            <i class="fas fa-play"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-number" id="inProgressNotifications">0</div>
+                            <div class="stat-label">In Progress</div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon completed">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-number" id="completedNotifications">0</div>
+                            <div class="stat-label">Completed</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="enhancedPickupNotifications">
+                    <!-- Pickup notifications will be populated here -->
+                </div>
             </div>
 
             <!-- Recent Activity Section -->
@@ -380,5 +447,6 @@
     <!-- JavaScript Files -->
     <script src="js/admin-dashboard-utils.js"></script>
     <script src="js/admin-dashboard.js"></script>
+    <script src="js/enhanced-pickup-notifications.js"></script>
 </body>
 </html>

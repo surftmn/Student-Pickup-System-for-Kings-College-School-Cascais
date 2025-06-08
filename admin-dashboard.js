@@ -372,6 +372,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             loadRecentActivity()
         ]);
         
+        // Initialize pickup notifications system
+        initializePickupNotifications();
+        
         console.log('✅ Admin dashboard loaded successfully');
         
         // Periodic refresh
@@ -2098,6 +2101,49 @@ async function showTodaysCompletedPickups() {
 // System Statistics Function
 function showSystemStats() {
     showToast('System statistics feature coming soon!', 'info');
+}
+
+// Enhanced Pickup Notifications Functions
+function showPickupNotifications() {
+    // Hide other sections
+    document.querySelector('.add-student-section').style.display = 'none';
+    document.querySelector('.recent-activity-section').style.display = 'none';
+    
+    // Show pickup notifications section
+    const pickupSection = document.getElementById('pickupNotificationsSection');
+    if (pickupSection) {
+        pickupSection.style.display = 'block';
+        
+        // Initialize enhanced pickup notifications if not already done
+        if (typeof enhancedPickupNotifications === 'undefined') {
+            window.enhancedPickupNotifications = new EnhancedPickupNotifications();
+        } else {
+            // Reload notifications to get latest data
+            enhancedPickupNotifications.loadPickupNotifications();
+        }
+        
+        // Scroll to the section
+        pickupSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+function hidePickupNotifications() {
+    // Hide pickup notifications section
+    const pickupSection = document.getElementById('pickupNotificationsSection');
+    if (pickupSection) {
+        pickupSection.style.display = 'none';
+    }
+    
+    // Show other sections
+    document.querySelector('.add-student-section').style.display = 'block';
+    document.querySelector('.recent-activity-section').style.display = 'block';
+}
+
+// Initialize enhanced pickup notifications system
+function initializePickupNotifications() {
+    if (typeof EnhancedPickupNotifications !== 'undefined') {
+        window.enhancedPickupNotifications = new EnhancedPickupNotifications();
+    }
 }
 
 // Add CSS for spinner in JavaScript
